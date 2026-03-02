@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+:root {
+  --background: #FEFDF5;
+  --foreground: #3D2C23;
+  --card: #FFFFFF;
+  --card-foreground: #3D2C23;
+  --popover: #FFFFFF;
+  --popover-foreground: #3D2C23;
+  --primary: #3D2C23;
+  --primary-foreground: #FEFDF5;
+  --secondary: #F5EDE0;
+  --secondary-foreground: #3D2C23;
+  --muted: #F0E8DA;
+  --muted-foreground: #8B7B6B;
+  --accent: #7EC8A0;
+  --accent-foreground: #1B4332;
+  --destructive: #E06B6B;
+  --destructive-foreground: #FEFDF5;
+  --border: #DDD2C3;
+  --input: #EBE3D6;
+  --ring: #7EC8A0;
+  --chart-1: #7EC8A0;
+  --chart-2: #8BB8E0;
+  --chart-3: #3D2C23;
+  --chart-4: #E8B86D;
+  --chart-5: #C9A882;
+  --radius: 1.5rem;
+  --sidebar: #F5EDE0;
+  --sidebar-foreground: #3D2C23;
+  --sidebar-primary: #3D2C23;
+  --sidebar-primary-foreground: #FEFDF5;
+  --sidebar-accent: #7EC8A0;
+  --sidebar-accent-foreground: #1B4332;
+  --sidebar-border: #E6DDD0;
+  --sidebar-ring: #7EC8A0;
+
+  /* Latte design system tokens */
+  --matcha: #7EC8A0;
+  --matcha-dark: #5BAF82;
+  --sky: #8BB8E0;
+  --sky-dark: #6A9FD0;
+  --cream: #FEFDF5;
+  --espresso: #3D2C23;
+  --caramel: #C9A882;
+  --latte: #F5EDE0;
+  --honey: #E8B86D;
+  --rose: #E8A0A0;
+}
+
+@theme inline {
+  --font-sans: 'Nunito', 'Nunito Fallback', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-matcha: var(--matcha);
+  --color-matcha-dark: var(--matcha-dark);
+  --color-sky: var(--sky);
+  --color-sky-dark: var(--sky-dark);
+  --color-cream: var(--cream);
+  --color-espresso: var(--espresso);
+  --color-caramel: var(--caramel);
+  --color-latte: var(--latte);
+  --color-honey: var(--honey);
+  --color-rose: var(--rose);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--latte);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--caramel);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--espresso);
+}
