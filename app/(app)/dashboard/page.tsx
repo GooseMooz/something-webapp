@@ -29,6 +29,7 @@ import {
   ClipboardCheck,
   MessageSquare,
   Waves,
+  Star,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import {
@@ -42,7 +43,7 @@ import {
   Cell,
   PieChart,
   Pie,
-  ResponsiveContainer,
+
 } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -134,7 +135,7 @@ export default function DashboardPage() {
           </div>
           <ScaleOnTap>
             <Link href="/opportunities">
-              <Button className="rounded-full bg-espresso font-bold text-card hover:bg-espresso/90 h-10 px-5">
+              <Button className="rounded-full bg-matcha font-bold text-espresso hover:bg-matcha-dark h-10 px-5">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Find Opportunities
               </Button>
@@ -178,9 +179,6 @@ export default function DashboardPage() {
                       transition={{ duration: 2, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
                     />
                   </div>
-                  <p className="text-[10px] text-espresso/35 mt-1 text-center">
-                    {user.xpToNextLevel - user.xp} XP to next level
-                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-center">
                   <div className="flex items-center gap-1.5 rounded-full bg-sky/10 px-2.5 py-1">
@@ -215,21 +213,19 @@ export default function DashboardPage() {
                 config={{ xp: { label: "XP Earned", color: "#7EC8A0" } }}
                 className="h-[160px] w-full"
               >
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={weeklyXpData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#7EC8A0" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#7EC8A0" stopOpacity={0.05} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#DDD2C3" strokeOpacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area type="monotone" dataKey="xp" stroke="#7EC8A0" strokeWidth={2} fill="url(#xpGrad)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AreaChart data={weeklyXpData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7EC8A0" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#7EC8A0" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#DDD2C3" strokeOpacity={0.5} />
+                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area type="monotone" dataKey="xp" stroke="#7EC8A0" strokeWidth={2} fill="url(#xpGrad)" />
+                </AreaChart>
               </ChartContainer>
             </CardContent>
           </Card>
@@ -350,16 +346,14 @@ export default function DashboardPage() {
                     }}
                     className="h-[110px] w-[110px] shrink-0"
                   >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={skillBreakdownData} cx="50%" cy="50%" innerRadius={32} outerRadius={50} paddingAngle={3} dataKey="value" strokeWidth={0}>
-                          {skillBreakdownData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={skillBreakdownData} cx="50%" cy="50%" innerRadius={32} outerRadius={50} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                        {skillBreakdownData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
                   </ChartContainer>
                   <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                     {skillBreakdownData.map((skill) => (
@@ -377,7 +371,24 @@ export default function DashboardPage() {
         </SlideUp>
       </div>
 
-      {/* Row 3: Monthly Impact + Activity */}
+      {/* Row 3: Mini Calendar */}
+      <SlideUp delay={0.16} className="mb-4">
+        <Card className={cn(cardClass)}>
+          <CardContent className="p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-espresso flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-sky-dark" />
+                Upcoming Schedule
+              </h3>
+              <span className="text-[10px] text-espresso/30">March 2026</span>
+            </div>
+            {/* Mini calendar grid */}
+            <MiniCalendar />
+          </CardContent>
+        </Card>
+      </SlideUp>
+
+      {/* Row 4: Monthly Impact + Activity */}
       <div className="grid gap-4 lg:grid-cols-2 mb-4">
         {/* Monthly Impact */}
         <SlideUp delay={0.18}>
@@ -397,16 +408,14 @@ export default function DashboardPage() {
                 config={{ hours: { label: "Hours", color: "#7EC8A0" }, tasks: { label: "Tasks", color: "#8BB8E0" } }}
                 className="h-[170px] w-full"
               >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyImpactData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#DDD2C3" strokeOpacity={0.5} vertical={false} />
-                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="hours" fill="#7EC8A0" radius={[6, 6, 0, 0]} barSize={16} />
-                    <Bar dataKey="tasks" fill="#8BB8E0" radius={[6, 6, 0, 0]} barSize={16} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarChart data={monthlyImpactData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#DDD2C3" strokeOpacity={0.5} vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#8B7B6B" }} axisLine={false} tickLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="hours" fill="#7EC8A0" radius={[6, 6, 0, 0]} barSize={16} />
+                  <Bar dataKey="tasks" fill="#8BB8E0" radius={[6, 6, 0, 0]} barSize={16} />
+                </BarChart>
               </ChartContainer>
             </CardContent>
           </Card>
@@ -541,7 +550,10 @@ function ApplicationRow({ application, index }: { application: Application; inde
         <Badge className={cn("rounded-full border-none text-[9px] font-bold px-2 py-0.5", config.color)}>
           {config.label}
         </Badge>
-        <span className="text-[10px] font-bold text-matcha-dark">{"+"}{application.xpReward}{" XP"}</span>
+        <span className="flex items-center gap-0.5 text-[10px] font-bold text-matcha-dark">
+          <Star className="h-2.5 w-2.5 fill-matcha text-matcha" />
+          {"+"}{application.xpReward}{" XP"}
+        </span>
       </div>
     </motion.div>
   )
@@ -636,6 +648,73 @@ function BadgeIcon({ badge }: { badge: BadgeData }) {
       )}>
         {badge.earned ? badge.name : "Locked"}
       </span>
+    </div>
+  )
+}
+
+/* -- Mini Calendar -- */
+function MiniCalendar() {
+  // March 2026: starts on Sunday (day 0)
+  const daysInMonth = 31
+  const startDay = 0 // Sunday
+  const today = 3 // March 3
+
+  // Events from applications (accepted/upcoming)
+  const eventDays: Record<number, { title: string; color: string }> = {
+    15: { title: "Beach Cleanup", color: "bg-matcha" },
+    20: { title: "Coding Workshop", color: "bg-sky" },
+    25: { title: "Welcome Event", color: "bg-caramel" },
+  }
+
+  const cells = []
+  for (let i = 0; i < startDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
+  return (
+    <div>
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+          <span key={i} className="text-center text-[9px] font-bold text-espresso/25 py-1">{d}</span>
+        ))}
+      </div>
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((day, i) => {
+          if (day === null) return <div key={`empty-${i}`} />
+          const event = eventDays[day]
+          const isToday = day === today
+          const isPast = day < today
+
+          return (
+            <motion.div
+              key={day}
+              whileHover={event ? { scale: 1.15 } : undefined}
+              className={cn(
+                "relative flex h-9 items-center justify-center rounded-lg text-xs font-semibold transition-colors",
+                isToday ? "bg-espresso text-card" : isPast ? "text-espresso/15" : "text-espresso/50 hover:bg-latte/60",
+                event && !isToday && "ring-1 ring-matcha/30"
+              )}
+              title={event?.title}
+            >
+              {day}
+              {event && (
+                <span className={cn("absolute bottom-0.5 h-1.5 w-1.5 rounded-full", event.color)} />
+              )}
+            </motion.div>
+          )
+        })}
+      </div>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-border/40">
+        {Object.entries(eventDays).map(([day, event]) => (
+          <div key={day} className="flex items-center gap-1.5 text-[10px] text-espresso/40">
+            <span className={cn("h-2 w-2 rounded-full", event.color)} />
+            <span className="font-semibold">Mar {day}</span>
+            <span className="text-espresso/25">{event.title}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

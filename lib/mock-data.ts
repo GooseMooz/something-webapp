@@ -72,7 +72,7 @@ export interface BadgeData {
 export const mockUser: User = {
   id: "u1",
   name: "Cathy Luo",
-  avatar: "",
+  avatar: "/images/cathy-luo.jpg",
   role: "youth",
   level: 3,
   levelTitle: "Community Builder",
@@ -454,4 +454,122 @@ export const causes = [
   "Indigenous Reconciliation",
   "Newcomer Support",
   "Homelessness",
+]
+
+/* ── Community Partners ─── */
+
+export interface Partner {
+  id: string
+  name: string
+  type: "environmental" | "civic" | "food" | "arts" | "education"
+  description: string
+  logo: string
+}
+
+export const communityPartners: Partner[] = [
+  { id: "p1", name: "Ocean Guardians BC", type: "environmental", description: "Coastal cleanup and marine conservation across Metro Vancouver.", logo: "OG" },
+  { id: "p2", name: "Green Roots Collective", type: "food", description: "Community gardens and sustainable food education for youth.", logo: "GR" },
+  { id: "p3", name: "TechBridge Vancouver", type: "education", description: "Free coding workshops and digital literacy for underserved youth.", logo: "TB" },
+  { id: "p4", name: "Arts for All Vancouver", type: "arts", description: "Public art projects and creative workshops in every neighbourhood.", logo: "AA" },
+  { id: "p5", name: "Greater Vancouver Food Bank", type: "food", description: "Distributing nutritious food to 30,000+ people monthly.", logo: "FBank" },
+  { id: "p6", name: "BC Parks Foundation", type: "environmental", description: "Trail restoration and wilderness stewardship across BC.", logo: "BCP" },
+  { id: "p7", name: "Welcome BC", type: "civic", description: "Settlement support and community integration for newcomers.", logo: "WBC" },
+  { id: "p8", name: "Sunshine Seniors Society", type: "civic", description: "Intergenerational programs connecting youth with seniors.", logo: "SSS" },
+  { id: "p9", name: "Vancouver Climate Hub", type: "environmental", description: "Climate education, advocacy and community action in the city.", logo: "VCH" },
+  { id: "p10", name: "Youth Food Movement", type: "food", description: "Youth-led food sovereignty and urban farming initiatives.", logo: "YFM" },
+]
+
+/* ── Mock Organization Account ─── */
+
+export interface OrgUser {
+  id: string
+  name: string
+  logo: string
+  type: string
+  description: string
+  website: string
+  email: string
+  phone: string
+  location: string
+  totalVolunteers: number
+  totalEvents: number
+  completedEvents: number
+  activeEvents: number
+  totalHired: number
+  socialLinks: { twitter: string; instagram: string; website: string }
+}
+
+export const mockOrg: OrgUser = {
+  id: "org1",
+  name: "New Brighton Park Restoration",
+  logo: "NB",
+  type: "Environmental Nonprofit",
+  description: "We restore and protect New Brighton Park's shoreline, wetlands, and trails through community-led planting days, invasive species removal, and habitat monitoring. Our volunteer network spans across Metro Vancouver with monthly events at 8 different restoration sites.",
+  website: "https://newbrightonrestore.org",
+  email: "hello@newbrightonrestore.org",
+  phone: "(604) 555-0198",
+  location: "Vancouver, BC",
+  totalVolunteers: 248,
+  totalEvents: 32,
+  completedEvents: 24,
+  activeEvents: 5,
+  totalHired: 186,
+  socialLinks: { twitter: "@nbprestoration", instagram: "@newbrightonrestore", website: "newbrightonrestore.org" },
+}
+
+/* ── Org Applications (what orgs see) ─── */
+
+export interface OrgApplication {
+  id: string
+  applicantName: string
+  applicantAvatar: string
+  applicantLevel: number
+  applicantXp: number
+  applicantHours: number
+  applicantSkills: string[]
+  applicantTags: string[]
+  applicantContact: {
+    email: string
+    phone: string
+    instagram?: string
+    linkedin?: string
+  }
+  opportunityId: string
+  opportunityTitle: string
+  status: "new" | "reviewed" | "accepted" | "rejected"
+  appliedDate: string
+  resumeUrl: string
+}
+
+export const mockOrgApplications: OrgApplication[] = [
+  {
+    id: "oa1", applicantName: "Cathy Luo", applicantAvatar: "/images/cathy-luo.jpg", applicantLevel: 3, applicantXp: 1250, applicantHours: 42,
+    applicantSkills: ["Event Planning", "Photography"], applicantTags: ["Reliable", "Team Player"],
+    applicantContact: { email: "cathy.luo@email.com", phone: "(604) 555-0147", instagram: "@cathyluo", linkedin: "linkedin.com/in/cathyluo" },
+    opportunityId: "op1", opportunityTitle: "Beach Cleanup at English Bay", status: "new", appliedDate: "2026-02-28", resumeUrl: "#",
+  },
+  {
+    id: "oa2", applicantName: "Alex Rivera", applicantAvatar: "", applicantLevel: 5, applicantXp: 3400, applicantHours: 95,
+    applicantSkills: ["Leadership", "Social Media", "First Aid"], applicantTags: ["Experienced", "Multilingual"],
+    applicantContact: { email: "alex.rivera@email.com", phone: "(604) 555-0231", instagram: "@alexrivera_van" },
+    opportunityId: "op1", opportunityTitle: "Beach Cleanup at English Bay", status: "accepted", appliedDate: "2026-02-25", resumeUrl: "#",
+  },
+  {
+    id: "oa3", applicantName: "Priya Sharma", applicantAvatar: "", applicantLevel: 4, applicantXp: 2900, applicantHours: 78,
+    applicantSkills: ["Public Speaking", "Teaching"], applicantTags: ["Dedicated", "Creative"],
+    applicantContact: { email: "priya.sharma@email.com", phone: "(604) 555-0312", linkedin: "linkedin.com/in/priyasharma" },
+    opportunityId: "op1", opportunityTitle: "Beach Cleanup at English Bay", status: "reviewed", appliedDate: "2026-03-01", resumeUrl: "#",
+  },
+  {
+    id: "oa4", applicantName: "Liam Nguyen", applicantAvatar: "", applicantLevel: 4, applicantXp: 2100, applicantHours: 61,
+    applicantSkills: ["Photography", "Design"], applicantTags: ["Creative", "Outdoorsy"],
+    applicantContact: { email: "liam.nguyen@email.com", phone: "(604) 555-0445", instagram: "@liamnguyen.photo" },
+    opportunityId: "op3", opportunityTitle: "Community Garden Planting Day", status: "new", appliedDate: "2026-03-02", resumeUrl: "#",
+  },
+  {
+    id: "oa5", applicantName: "Sophia Park", applicantAvatar: "", applicantLevel: 3, applicantXp: 1100, applicantHours: 35,
+    applicantSkills: ["Event Planning", "Cooking"], applicantTags: ["Friendly", "Beginner"],
+    applicantContact: { email: "sophia.park@email.com", phone: "(604) 555-0578", instagram: "@sophiapark_yvr", linkedin: "linkedin.com/in/sophiapark" },
+    opportunityId: "op3", opportunityTitle: "Community Garden Planting Day", status: "accepted", appliedDate: "2026-02-27", resumeUrl: "#",
+  },
 ]

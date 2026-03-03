@@ -48,11 +48,8 @@ export function XpRing({
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-xs font-semibold text-espresso/50 uppercase tracking-wider">Level</span>
+        <span className="text-[10px] font-semibold text-espresso/40 uppercase tracking-wider">Level</span>
         <span className="text-3xl font-extrabold text-espresso leading-none">{level}</span>
-        <span className="text-xs font-bold text-matcha-dark mt-0.5">
-          {xp}/{xpToNextLevel} XP
-        </span>
       </div>
     </div>
   )

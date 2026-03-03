@@ -105,9 +105,6 @@ export default function ProfilePage() {
                     value={(user.xp / user.xpToNextLevel) * 100}
                     className="h-2 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-matcha [&>div]:to-matcha-dark [&>div]:rounded-full"
                   />
-                  <p className="text-[10px] text-espresso/35 mt-1">
-                    {user.xp}{" / "}{user.xpToNextLevel}{" XP -- "}{user.xpToNextLevel - user.xp}{" to next level"}
-                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
                   <span className="flex items-center gap-1 rounded-full bg-honey/10 px-2.5 py-1 text-[10px] font-bold text-espresso/60">
@@ -185,12 +182,20 @@ export default function ProfilePage() {
               {"Earned Badges ("}{earnedBadges.length}{")"}
             </h3>
             <StaggerChildren className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
-              {earnedBadges.map((badge) => (
+              {earnedBadges.map((badge, idx) => {
+                const badgeColors = [
+                  "bg-matcha/12 text-matcha-dark",
+                  "bg-sky/12 text-sky-dark",
+                  "bg-honey/12 text-espresso/70",
+                  "bg-rose/10 text-rose",
+                  "bg-caramel/12 text-espresso/60",
+                ]
+                return (
                 <StaggerItem key={badge.id}>
                   <div className="flex flex-col items-center gap-1.5">
                     <motion.div
                       whileHover={{ rotate: 8, scale: 1.1 }}
-                      className="flex h-12 w-12 items-center justify-center rounded-xl bg-matcha/12 text-matcha-dark"
+                      className={cn("flex h-12 w-12 items-center justify-center rounded-xl", badgeColors[idx % badgeColors.length])}
                     >
                       <Award className="h-5 w-5" />
                     </motion.div>
@@ -199,7 +204,8 @@ export default function ProfilePage() {
                     </span>
                   </div>
                 </StaggerItem>
-              ))}
+                )
+              })}
             </StaggerChildren>
           </CardContent>
         </Card>

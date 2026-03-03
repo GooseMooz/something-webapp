@@ -25,7 +25,7 @@ export default function LoginPage() {
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-      router.push("/opportunities")
+      router.push(role === "youth" ? "/opportunities" : "/org/opportunities")
     }, 1200)
   }
 
