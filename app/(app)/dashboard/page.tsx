@@ -82,6 +82,18 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import React from "react"
 
+/* ── Decorative helpers ─────────────────────────────────── */
+function Asterisk({ size = 20, color = "currentColor", className = "" }: { size?: number; color?: string; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {[0, 45, 90, 135].map((angle) => (
+        <line key={angle} x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round"
+          transform={`rotate(${angle} 12 12)`} />
+      ))}
+    </svg>
+  )
+}
+
 const badgeIconMap: Record<string, React.ElementType> = {
   Footprints, Waves, HandHeart: Heart, Users, Code, Sunrise, UsersRound, Timer, Sprout, Crown,
 }
@@ -113,7 +125,25 @@ export default function DashboardPage() {
 
       {/* Header */}
       <FadeIn>
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between relative">
+          {/* Decorative asterisks */}
+          <motion.div className="absolute -top-2 right-32 hidden sm:block"
+            initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.6, type: "spring", stiffness: 300 }}>
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }}>
+              <Asterisk size={22} color="var(--honey)" />
+            </motion.div>
+          </motion.div>
+          <motion.div className="absolute top-1 right-48 hidden sm:block"
+            initial={{ scale: 0 }} animate={{ scale: 1, y: [0, -4, 0] }}
+            transition={{ delay: 0.8, y: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}>
+            <Asterisk size={14} color="var(--rose)" />
+          </motion.div>
+          <motion.div className="absolute -top-3 left-64 hidden md:block"
+            initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1, rotate: [0, 15, -15, 0] }}
+            transition={{ delay: 1.0, rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" } }}>
+            <Asterisk size={16} color="var(--matcha)" />
+          </motion.div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-espresso md:text-3xl">
@@ -133,7 +163,7 @@ export default function DashboardPage() {
               {"You're on a "}<span className="font-bold text-matcha-dark">{streakData.current}-day streak</span>{" -- keep it going!"}
             </p>
           </div>
-          <ScaleOnTap>
+          <ScaleOnTap hapticPattern="medium">
             <Link href="/opportunities">
               <Button className="rounded-full bg-matcha font-bold text-espresso hover:bg-matcha-dark h-10 px-5">
                 <Sparkles className="mr-2 h-4 w-4" />
@@ -149,7 +179,7 @@ export default function DashboardPage() {
         {/* XP & Level Hero */}
         <SlideUp className="sm:col-span-2 lg:col-span-1">
           <Card className={cn(cardClass, "relative overflow-hidden h-full")}>
-            <div className="absolute inset-0 bg-gradient-to-br from-matcha/5 via-transparent to-sky/5" />
+            <div className="absolute inset-0 bg-gradient-to-br from-matcha/18 via-honey/6 to-rose/10" />
             <ConfettiBurst active={showConfetti} />
             <CardContent className="relative flex flex-col items-center gap-4 p-5">
               <PulseGlow>
@@ -303,7 +333,18 @@ export default function DashboardPage() {
                   <span className="text-[10px] text-espresso/30">{"Best: "}{streakData.best}{"d"}</span>
                 </div>
                 <div className="flex justify-between gap-1">
-                  {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
+                  {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => {
+                    const streakColors = [
+                      "bg-matcha/20 text-matcha-dark",
+                      "bg-honey/20 text-espresso/70",
+                      "bg-sky/20 text-sky-dark",
+                      "bg-rose/20 text-rose",
+                      "bg-caramel/20 text-espresso/70",
+                      "bg-matcha/20 text-matcha-dark",
+                      "bg-honey/20 text-espresso/70",
+                    ]
+                    const flameColors = ["text-matcha-dark", "text-honey", "text-sky-dark", "text-rose", "text-caramel", "text-matcha-dark", "text-honey"]
+                    return (
                     <motion.div
                       key={i}
                       initial={{ scale: 0 }}
@@ -314,16 +355,17 @@ export default function DashboardPage() {
                       <span className="text-[9px] font-semibold text-espresso/30">{day}</span>
                       <div className={cn(
                         "flex h-9 w-full items-center justify-center rounded-lg",
-                        streakData.thisWeek[i] ? "bg-matcha/15" : "bg-muted/50"
+                        streakData.thisWeek[i] ? streakColors[i] : "bg-muted/50"
                       )}>
                         {streakData.thisWeek[i] ? (
-                          <Flame className="h-3.5 w-3.5 text-matcha-dark" />
+                          <Flame className={cn("h-3.5 w-3.5", flameColors[i])} />
                         ) : (
                           <div className="h-1.5 w-1.5 rounded-full bg-espresso/8" />
                         )}
                       </div>
                     </motion.div>
-                  ))}
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -454,18 +496,21 @@ export default function DashboardPage() {
           <Card className={cn(cardClass, "h-full")}>
             <CardContent className="p-5">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-espresso flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-espresso flex items-center gap-2">
                   <Award className="h-4 w-4 text-honey" />
                   Badges
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}>
+                    <Asterisk size={13} color="var(--honey)" />
+                  </motion.div>
                 </h3>
                 <span className="text-[10px] text-espresso/30">
                   {mockBadges.filter(b => b.earned).length}{"/"}{mockBadges.length}
                 </span>
               </div>
               <StaggerChildren className="grid grid-cols-5 gap-3 sm:grid-cols-5 md:grid-cols-5">
-                {mockBadges.map((badge) => (
+                {mockBadges.map((badge, i) => (
                   <StaggerItem key={badge.id}>
-                    <BadgeIcon badge={badge} />
+                    <BadgeIcon badge={badge} index={i} />
                   </StaggerItem>
                 ))}
               </StaggerChildren>
@@ -562,14 +607,14 @@ function ApplicationRow({ application, index }: { application: Application; inde
 /* -- Mini Stat -- */
 function MiniStat({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string | number; color: "matcha" | "sky" | "honey" }) {
   const accentMap = {
-    matcha: "bg-matcha/12 text-matcha-dark",
-    sky: "bg-sky/12 text-sky-dark",
-    honey: "bg-honey/12 text-espresso/70",
+    matcha: { icon: "bg-matcha/15 text-matcha-dark", border: "border-l-2 border-matcha/50" },
+    sky: { icon: "bg-sky/15 text-sky-dark", border: "border-l-2 border-sky/50" },
+    honey: { icon: "bg-honey/15 text-espresso/70", border: "border-l-2 border-honey/50" },
   }
   return (
-    <Card className={cn(cardClass, "h-full")}>
+    <Card className={cn(cardClass, "h-full overflow-hidden", accentMap[color].border)}>
       <CardContent className="flex items-center gap-3 p-3.5">
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg shrink-0", accentMap[color])}>
+        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg shrink-0", accentMap[color].icon)}>
           <Icon className="h-4 w-4" />
         </div>
         <div>
@@ -620,7 +665,15 @@ function ActivityRow({ item }: { item: ActivityItem }) {
 }
 
 /* -- Badge Icon -- */
-function BadgeIcon({ badge }: { badge: BadgeData }) {
+const badgeColorCycle = [
+  "bg-matcha/18 text-matcha-dark",
+  "bg-honey/20 text-espresso/70",
+  "bg-sky/18 text-sky-dark",
+  "bg-rose/15 text-rose",
+  "bg-caramel/20 text-espresso/60",
+]
+
+function BadgeIcon({ badge, index = 0 }: { badge: BadgeData; index?: number }) {
   const Icon = badgeIconMap[badge.icon] ?? Award
   return (
     <div className="flex flex-col items-center gap-1.5 group" title={badge.description}>
@@ -628,7 +681,7 @@ function BadgeIcon({ badge }: { badge: BadgeData }) {
         whileHover={{ rotate: badge.earned ? 8 : 0, scale: 1.08 }}
         className={cn(
           "relative flex h-12 w-12 items-center justify-center rounded-xl transition-all",
-          badge.earned ? "bg-matcha/12 text-matcha-dark" : "bg-muted/50 text-espresso/12"
+          badge.earned ? badgeColorCycle[index % badgeColorCycle.length] : "bg-muted/50 text-espresso/12"
         )}
       >
         {badge.earned ? (

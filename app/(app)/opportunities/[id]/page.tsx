@@ -14,17 +14,30 @@ import { Progress } from "@/components/ui/progress"
 import { FadeIn, SlideUp, ScaleOnTap, ConfettiBurst } from "@/components/motion-wrapper"
 import { mockOpportunities, mockUser } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
+import { haptic } from "@/lib/haptics"
 
-const categoryColorMap: Record<string, { bg: string; text: string }> = {
-  Environment: { bg: "bg-matcha/12", text: "text-matcha-dark" },
-  Education: { bg: "bg-sky/12", text: "text-sky-dark" },
-  Community: { bg: "bg-caramel/12", text: "text-espresso/80" },
-  "Arts & Culture": { bg: "bg-honey/12", text: "text-espresso/80" },
-  Health: { bg: "bg-rose/12", text: "text-rose" },
-  Technology: { bg: "bg-sky/12", text: "text-sky-dark" },
-  Sports: { bg: "bg-caramel/12", text: "text-espresso/80" },
+const categoryColorMap: Record<string, { bg: string; text: string; accent: string; border: string }> = {
+  Environment:    { bg: "bg-matcha/12",  text: "text-matcha-dark",   accent: "bg-matcha",  border: "border-l-2 border-matcha/40" },
+  Education:      { bg: "bg-sky/12",     text: "text-sky-dark",      accent: "bg-sky",     border: "border-l-2 border-sky/40" },
+  Community:      { bg: "bg-caramel/12", text: "text-espresso/80",   accent: "bg-caramel", border: "border-l-2 border-caramel/40" },
+  "Arts & Culture":{ bg: "bg-honey/12",  text: "text-espresso/80",   accent: "bg-honey",   border: "border-l-2 border-honey/40" },
+  Health:         { bg: "bg-rose/12",    text: "text-rose",          accent: "bg-rose",    border: "border-l-2 border-rose/40" },
+  Technology:     { bg: "bg-sky/12",     text: "text-sky-dark",      accent: "bg-sky",     border: "border-l-2 border-sky/40" },
+  Sports:         { bg: "bg-caramel/12", text: "text-espresso/80",   accent: "bg-caramel", border: "border-l-2 border-caramel/40" },
 }
 const cardClass = "border-border/60 bg-card shadow-sm shadow-espresso/[0.03]"
+
+/* ── Decorative helpers ─────────────────────────────────── */
+function Asterisk({ size = 20, color = "currentColor", className = "" }: { size?: number; color?: string; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {[0, 45, 90, 135].map((angle) => (
+        <line key={angle} x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round"
+          transform={`rotate(${angle} 12 12)`} />
+      ))}
+    </svg>
+  )
+}
 
 export default function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -48,6 +61,7 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
   const isAlmostFull = opportunity.spotsLeft <= 5
 
   function handleApply() {
+    haptic("success")
     setApplied(true)
     setShowConfetti(true)
     setTimeout(() => setShowConfetti(false), 1500)
@@ -87,19 +101,28 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                   )}
                 </div>
 
-                <h1 className="text-2xl font-extrabold text-espresso mb-3 text-balance md:text-3xl">{opportunity.title}</h1>
+                <div className="relative">
+                  <h1 className="text-2xl font-extrabold text-espresso mb-3 text-balance md:text-3xl">{opportunity.title}</h1>
+                  <motion.div className="absolute -top-2 -right-1 hidden sm:block"
+                    initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.4, type: "spring", stiffness: 280 }}>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 11, repeat: Infinity, ease: "linear" }}>
+                      <Asterisk size={18} color={`var(--${opportunity.category === "Environment" ? "matcha" : opportunity.category === "Education" || opportunity.category === "Technology" ? "sky" : opportunity.category === "Health" ? "rose" : "honey"})`} />
+                    </motion.div>
+                  </motion.div>
+                </div>
                 <p className="text-sm text-espresso/50 leading-relaxed mb-5">{opportunity.description}</p>
 
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   {[
-                    { icon: Calendar, label: "Date", value: opportunity.date, accent: "text-sky-dark" },
-                    { icon: Clock, label: "Duration", value: opportunity.timeCommitment, accent: "text-honey" },
-                    { icon: MapPin, label: "Location", value: opportunity.location.split(",")[0], accent: "text-matcha-dark" },
-                    { icon: Star, label: "XP Reward", value: `${opportunity.xpReward} XP`, accent: "text-caramel" },
+                    { icon: Calendar, label: "Date",     value: opportunity.date,                      bg: "bg-sky/12",     icon_color: "text-sky-dark",    border: "border-l-2 border-sky/35" },
+                    { icon: Clock,    label: "Duration", value: opportunity.timeCommitment,             bg: "bg-honey/12",   icon_color: "text-espresso/60", border: "border-l-2 border-honey/35" },
+                    { icon: MapPin,   label: "Location", value: opportunity.location.split(",")[0],     bg: "bg-matcha/12",  icon_color: "text-matcha-dark", border: "border-l-2 border-matcha/35" },
+                    { icon: Star,     label: "XP Reward",value: `${opportunity.xpReward} XP`,          bg: "bg-caramel/12", icon_color: "text-espresso/65", border: "border-l-2 border-caramel/35" },
                   ].map((item) => (
-                    <div key={item.label} className="flex flex-col gap-1 rounded-xl bg-latte/40 p-3">
-                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-espresso/35">
-                        <item.icon className={cn("h-3 w-3", item.accent)} /> {item.label}
+                    <div key={item.label} className={cn("flex flex-col gap-1 rounded-xl p-3", item.bg, item.border)}>
+                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-espresso/45">
+                        <item.icon className={cn("h-3 w-3", item.icon_color)} /> {item.label}
                       </div>
                       <span className="text-xs font-bold text-espresso">{item.value}</span>
                     </div>
@@ -127,7 +150,7 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                   <AnimatePresence mode="wait">
                     {!applied ? (
                       <motion.div key="apply" className="flex-1" exit={{ scale: 0.9, opacity: 0 }} transition={{ duration: 0.2 }}>
-                        <ScaleOnTap className="w-full">
+                        <ScaleOnTap className="w-full" hapticPattern="medium">
                           <Button onClick={handleApply} className="w-full rounded-full bg-espresso text-card hover:bg-espresso/90 h-12 text-sm font-bold">
                             <CheckCircle2 className="mr-2 h-4 w-4" /> Apply Now
                           </Button>
@@ -150,14 +173,14 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <ScaleOnTap>
-                    <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-border/60">
-                      <Heart className="h-4 w-4 text-espresso/40" /><span className="sr-only">Save</span>
+                  <ScaleOnTap hapticPattern="light">
+                    <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-rose/30 hover:bg-rose/10 hover:border-rose/50 transition-colors">
+                      <Heart className="h-4 w-4 text-rose" /><span className="sr-only">Save</span>
                     </Button>
                   </ScaleOnTap>
-                  <ScaleOnTap>
-                    <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-border/60">
-                      <Share2 className="h-4 w-4 text-espresso/40" /><span className="sr-only">Share</span>
+                  <ScaleOnTap hapticPattern="light">
+                    <Button variant="outline" size="icon" className="rounded-full h-12 w-12 border-sky/30 hover:bg-sky/10 hover:border-sky/50 transition-colors">
+                      <Share2 className="h-4 w-4 text-sky-dark" /><span className="sr-only">Share</span>
                     </Button>
                   </ScaleOnTap>
                 </div>
@@ -265,11 +288,14 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
                 <div className="mt-4">
                   <p className="text-[10px] font-semibold text-espresso/30 mb-2">Earned Badges</p>
                   <div className="flex gap-1.5">
-                    {Array.from({ length: Math.min(mockUser.badgesEarned, 5) }).map((_, i) => (
-                      <div key={i} className="flex h-8 w-8 items-center justify-center rounded-lg bg-matcha/10 text-matcha-dark">
+                    {Array.from({ length: Math.min(mockUser.badgesEarned, 5) }).map((_, i) => {
+                      const badgeColors = ["bg-matcha/18 text-matcha-dark","bg-honey/18 text-espresso/70","bg-sky/18 text-sky-dark","bg-rose/15 text-rose","bg-caramel/18 text-espresso/60"]
+                      return (
+                      <motion.div key={i} whileHover={{ scale: 1.1, rotate: 8 }} transition={{ type: "spring", stiffness: 400 }}
+                        className={cn("flex h-8 w-8 items-center justify-center rounded-lg", badgeColors[i])}>
                         <Award className="h-3.5 w-3.5" />
-                      </div>
-                    ))}
+                      </motion.div>
+                    )})}
                     {mockUser.badgesEarned > 5 && (
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-[10px] font-bold text-espresso/30">
                         +{mockUser.badgesEarned - 5}

@@ -24,15 +24,28 @@ import {
 import { mockApplications, type Application } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { haptic } from "@/lib/haptics"
+
+/* ── Decorative helpers ─────────────────────────────────── */
+function Asterisk({ size = 20, color = "currentColor", className = "" }: { size?: number; color?: string; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {[0, 45, 90, 135].map((angle) => (
+        <line key={angle} x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round"
+          transform={`rotate(${angle} 12 12)`} />
+      ))}
+    </svg>
+  )
+}
 
 type StatusFilter = "all" | Application["status"]
 
-const statusConfig: Record<Application["status"], { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  accepted: { label: "Accepted", color: "text-matcha-dark", bg: "bg-matcha/12", icon: CheckCircle2 },
-  upcoming: { label: "Upcoming", color: "text-sky-dark", bg: "bg-sky/12", icon: Calendar },
-  pending: { label: "Pending", color: "text-espresso/70", bg: "bg-honey/12", icon: Hourglass },
-  waitlisted: { label: "Waitlisted", color: "text-espresso/60", bg: "bg-caramel/12", icon: CircleDot },
-  completed: { label: "Completed", color: "text-espresso/45", bg: "bg-espresso/6", icon: ClipboardCheck },
+const statusConfig: Record<Application["status"], { label: string; color: string; bg: string; border: string; icon: React.ElementType }> = {
+  accepted: { label: "Accepted", color: "text-matcha-dark", bg: "bg-matcha/12", border: "border-matcha/30", icon: CheckCircle2 },
+  upcoming: { label: "Upcoming", color: "text-sky-dark", bg: "bg-sky/12", border: "border-sky/30", icon: Calendar },
+  pending: { label: "Pending", color: "text-espresso/70", bg: "bg-honey/12", border: "border-honey/30", icon: Hourglass },
+  waitlisted: { label: "Waitlisted", color: "text-espresso/60", bg: "bg-caramel/12", border: "border-caramel/30", icon: CircleDot },
+  completed: { label: "Completed", color: "text-espresso/45", bg: "bg-espresso/6", border: "border-espresso/15", icon: ClipboardCheck },
 }
 
 const filters: { value: StatusFilter; label: string }[] = [
@@ -56,7 +69,19 @@ export default function ApplicationsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 pb-24 md:px-6 md:py-8 md:pb-8">
       <FadeIn>
-        <div className="mb-6">
+        <div className="mb-6 relative">
+          <motion.div className="absolute -top-1 right-2 hidden sm:block"
+            initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.5, type: "spring", stiffness: 300 }}>
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 9, repeat: Infinity, ease: "linear" }}>
+              <Asterisk size={22} color="var(--caramel)" />
+            </motion.div>
+          </motion.div>
+          <motion.div className="absolute top-3 right-12 hidden sm:block"
+            initial={{ scale: 0 }} animate={{ scale: 1, y: [0, -4, 0] }}
+            transition={{ delay: 0.75, y: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}>
+            <Asterisk size={13} color="var(--matcha)" />
+          </motion.div>
           <h1 className="text-2xl font-extrabold text-espresso md:text-3xl">My Applications</h1>
           <p className="mt-1 text-sm text-espresso/40">
             Track all your volunteer applications in one place.
@@ -75,17 +100,17 @@ export default function ApplicationsPage() {
                 key={status}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => setFilter(filter === status ? "all" : status)}
+                onClick={() => { setFilter(filter === status ? "all" : status); haptic("selection") }}
                 className={cn(
                   "flex flex-col items-center gap-1 rounded-2xl border p-3 transition-all",
                   filter === status
-                    ? "border-espresso/15 bg-espresso text-card shadow-sm"
-                    : cn(cardClass, "text-espresso hover:border-border")
+                    ? cn(config.bg, config.border, "ring-2", config.border, "shadow-sm")
+                    : cn(cardClass, "hover:border-border", config.bg.replace("/12", "/6").replace("/6", "/4"))
                 )}
               >
-                <config.icon className={cn("h-4 w-4", filter === status ? "text-card/70" : config.color)} />
-                <span className="text-xl font-extrabold">{count}</span>
-                <span className={cn("text-[10px] font-semibold", filter === status ? "text-card/60" : "text-espresso/35")}>
+                <config.icon className={cn("h-4 w-4", config.color)} />
+                <span className={cn("text-xl font-extrabold", filter === status ? config.color : "text-espresso")}>{count}</span>
+                <span className={cn("text-[10px] font-semibold", filter === status ? config.color : "text-espresso/35")}>
                   {config.label}
                 </span>
               </motion.button>
@@ -101,7 +126,7 @@ export default function ApplicationsPage() {
             <motion.button
               key={f.value}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setFilter(f.value)}
+              onClick={() => { setFilter(f.value); haptic("selection") }}
               className={cn(
                 "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 filter === f.value
@@ -165,10 +190,10 @@ function ApplicationCard({ application }: { application: Application }) {
       whileHover={{ y: -3 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      <Card className={cn(cardClass, "overflow-hidden transition-all hover:shadow-md hover:shadow-espresso/[0.06] hover:border-border h-full")}>
+      <Card className={cn(cardClass, "overflow-hidden transition-all hover:shadow-md hover:shadow-espresso/[0.06] hover:border-border h-full border-l-2", config.border)}>
         <CardContent className="p-0">
           {/* Top accent strip */}
-          <div className={cn("h-1.5 w-full", config.bg)} />
+          <div className={cn("h-1 w-full", config.bg)} />
 
           <div className="flex flex-col gap-3 p-5">
             {/* Status + badge */}

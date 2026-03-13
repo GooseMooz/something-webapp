@@ -1,65 +1,61 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Sparkles, Heart, Users, Globe, ArrowLeft } from "lucide-react"
-import { motion } from "framer-motion"
+import { Sparkles, Heart, Users, Globe, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   FadeIn,
   SlideUp,
   StaggerChildren,
   StaggerItem,
   ScaleOnTap,
-  AnimatedCounter,
 } from "@/components/motion-wrapper"
 import { Footer } from "@/components/footer"
+import { haptic } from "@/lib/haptics"
+import { cn } from "@/lib/utils"
+
+const cardClass = "border-border/70 bg-card shadow-sm shadow-espresso/[0.04]"
 
 const values = [
   {
-    title: "Youth-First Design",
-    description: "Every feature is built for how young people actually use technology -- fast, mobile, social.",
+    title: "Made for how you live",
+    description: "Fast, mobile-first, and designed around real schedules — not volunteer orientations that take two hours.",
     icon: Users,
     color: "bg-matcha/12 text-matcha-dark",
   },
   {
-    title: "Trust & Safety",
-    description: "Verified organizations, transparent reviews, and a trust score system that protects everyone.",
+    title: "Trust and safety",
+    description: "Verified organizations, transparent reviews, and a trust score that protects everyone in the community.",
     icon: Heart,
-    color: "bg-sky/12 text-sky-dark",
+    color: "bg-caramel/20 text-espresso/70",
   },
   {
-    title: "Local Impact",
-    description: "Rooted in Metro Vancouver with plans to grow. Every hour logged makes a real difference here.",
+    title: "Rooted locally",
+    description: "Starting in Metro Vancouver and growing intentionally. Every hour logged makes a real difference here.",
     icon: Globe,
     color: "bg-honey/12 text-espresso/70",
   },
 ]
 
-const timeline = [
-  { year: "2025", event: "Founded by a group of UBC students frustrated with disconnected volunteer platforms." },
-  { year: "2025", event: "Beta launched with 50 youth and 12 local organizations." },
-  { year: "2026", event: "Grew to 2,400+ active volunteers and 180 partner orgs across Metro Vancouver." },
-  { year: "2026", event: "Gamification system launched -- XP, badges, and leaderboards." },
-  { year: "Next", event: "Expanding to more BC communities and adding team volunteering features." },
-]
-
 export default function OurStoryPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Simple nav for this page */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-card/85 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-matcha text-espresso">
-              <Sparkles className="h-5 w-5" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-espresso text-cream">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <span className="text-xl font-extrabold text-espresso">Something</span>
+            <span className="font-serif font-semibold text-lg text-espresso">Something</span>
           </Link>
           <Link href="/">
-            <Button variant="ghost" size="sm" className="rounded-full text-xs font-semibold text-espresso/50">
-              <ArrowLeft className="mr-1.5 h-3 w-3" />
-              Home
+            <Button variant="ghost" size="sm" className="rounded-full text-xs font-medium text-espresso/50 hover:text-espresso">
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              Back
             </Button>
           </Link>
         </nav>
@@ -69,33 +65,33 @@ export default function OurStoryPage() {
       <section className="px-4 py-16 md:px-6 md:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <FadeIn>
-            <h1 className="text-4xl font-extrabold text-espresso md:text-6xl text-balance leading-[1.1]">
-              Why We Built{" "}
+            <h1 className="font-display text-4xl tracking-wide text-espresso md:text-6xl text-balance leading-[1.05]">
+              Why we built{" "}
               <span className="text-matcha-dark">Something</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.15}>
-            <p className="mt-6 text-lg text-espresso/45 leading-relaxed max-w-xl mx-auto text-pretty">
-              We believe every young person has the power to make a difference. We just needed to make it easier to start.
+            <p className="font-serif mt-7 text-lg text-espresso/50 leading-relaxed max-w-xl mx-auto text-pretty italic">
+              We believe every young person has the power to make a difference. We just wanted to make it easier to start.
             </p>
           </FadeIn>
         </div>
       </section>
 
       {/* The Problem */}
-      <section className="bg-latte/50 px-4 py-16 md:px-6 md:py-24">
+      <section className="bg-latte/45 px-4 py-16 md:px-6 md:py-24">
         <div className="mx-auto max-w-3xl">
           <SlideUp>
-            <h2 className="text-2xl font-extrabold text-espresso mb-6 md:text-3xl">The Problem</h2>
-            <div className="flex flex-col gap-4 text-sm text-espresso/55 leading-relaxed">
+            <h2 className="text-2xl font-bold text-espresso mb-7 md:text-3xl">The problem</h2>
+            <div className="flex flex-col gap-5 font-serif text-sm text-espresso/60 leading-relaxed">
               <p>
-                Volunteering in Metro Vancouver was broken. Youth wanted to help but couldn{"'"}t find opportunities that fit their schedule, matched their interests, or felt meaningful.
+                Volunteering in Metro Vancouver was broken in a quiet, frustrating way. Youth wanted to help but couldn&apos;t find opportunities that fit their schedule, matched their interests, or felt like they&apos;d actually matter.
               </p>
               <p>
-                Organizations needed volunteers but were drowning in outdated sign-up sheets and email chains. The matching was manual, the experience was forgettable, and nobody was tracking the incredible impact being made.
+                Organizations needed volunteers but were drowning in outdated sign-up sheets and email chains. The matching was manual, the experience was forgettable, and nobody was tracking the incredible work being done.
               </p>
               <p>
-                We asked ourselves: <span className="font-bold text-espresso">What if volunteering felt as engaging as the apps young people already love?</span>
+                We asked ourselves: <span className="font-semibold not-italic text-espresso">what if volunteering felt as easy as booking a restaurant?</span> What if every hour you gave back actually meant something you could point to?
               </p>
             </div>
           </SlideUp>
@@ -106,19 +102,19 @@ export default function OurStoryPage() {
       <section className="px-4 py-16 md:px-6 md:py-24">
         <div className="mx-auto max-w-4xl">
           <SlideUp>
-            <h2 className="text-2xl font-extrabold text-espresso mb-10 text-center md:text-3xl">What We Stand For</h2>
+            <h2 className="text-2xl font-bold text-espresso mb-12 text-center md:text-3xl">What we stand for</h2>
           </SlideUp>
           <StaggerChildren className="grid gap-5 md:grid-cols-3">
             {values.map((value) => (
               <StaggerItem key={value.title}>
                 <motion.div whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Card className="border-border/40 bg-card h-full">
+                  <Card className={cn(cardClass, "h-full")}>
                     <CardContent className="flex flex-col gap-4 p-6">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${value.color}`}>
-                        <value.icon className="h-6 w-6" />
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${value.color}`}>
+                        <value.icon className="h-5 w-5" />
                       </div>
-                      <h3 className="text-base font-bold text-espresso">{value.title}</h3>
-                      <p className="text-xs text-espresso/45 leading-relaxed">{value.description}</p>
+                      <h3 className="text-base font-semibold text-espresso">{value.title}</h3>
+                      <p className="font-serif text-xs text-espresso/50 leading-relaxed">{value.description}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -128,97 +124,86 @@ export default function OurStoryPage() {
         </div>
       </section>
 
-      {/* Timeline */}
-      <section className="bg-latte/50 px-4 py-16 md:px-6 md:py-24">
-        <div className="mx-auto max-w-2xl">
+      {/* Waitlist CTA */}
+      <section className="bg-latte/40 px-4 py-16 md:px-6 md:py-24">
+        <div className="mx-auto max-w-xl text-center">
           <SlideUp>
-            <h2 className="text-2xl font-extrabold text-espresso mb-10 text-center md:text-3xl">Our Journey</h2>
-          </SlideUp>
-          <div className="relative">
-            <div className="absolute left-[19px] top-0 bottom-0 w-px bg-border/60" />
-            {timeline.map((item, i) => (
-              <SlideUp key={i} delay={i * 0.08}>
-                <div className="relative flex gap-5 pb-8 last:pb-0">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3 + i * 0.1, type: "spring" }}
-                    className="relative z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-card border border-border/40 text-xs font-extrabold text-espresso shrink-0"
-                  >
-                    {item.year}
-                  </motion.div>
-                  <p className="text-sm text-espresso/55 leading-relaxed pt-2">{item.event}</p>
-                </div>
-              </SlideUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Impact */}
-      <section className="px-4 py-16 md:px-6 md:py-24">
-        <div className="mx-auto max-w-4xl text-center">
-          <SlideUp>
-            <h2 className="text-2xl font-extrabold text-espresso mb-10 md:text-3xl">The Impact So Far</h2>
-          </SlideUp>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {[
-              { value: 2400, suffix: "+", label: "Active Volunteers" },
-              { value: 15000, suffix: "+", label: "Hours Logged" },
-              { value: 180, suffix: "+", label: "Partner Organizations" },
-              { value: 340, suffix: "+", label: "Opportunities Posted" },
-            ].map((stat, i) => (
-              <SlideUp key={stat.label} delay={i * 0.08}>
-                <Card className="border-border/40 bg-card">
-                  <CardContent className="p-6">
-                    <p className="text-3xl font-extrabold text-espresso md:text-4xl">
-                      <AnimatedCounter target={stat.value} suffix={stat.suffix} duration={2} />
-                    </p>
-                    <p className="mt-1.5 text-xs font-semibold text-espresso/35">{stat.label}</p>
-                  </CardContent>
-                </Card>
-              </SlideUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="px-4 py-16 md:px-6 md:py-24">
-        <div className="mx-auto max-w-2xl">
-          <SlideUp>
-            <Card className="border-none bg-espresso overflow-hidden">
-              <CardContent className="flex flex-col items-center gap-5 p-10 text-center md:p-14">
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex h-14 w-14 items-center justify-center rounded-2xl bg-matcha/20"
-                >
-                  <Heart className="h-7 w-7 text-matcha" />
-                </motion.div>
-                <h2 className="text-2xl font-extrabold text-cream md:text-3xl text-balance">
-                  Ready to Do Something?
-                </h2>
-                <p className="text-sm text-cream/45 max-w-md leading-relaxed">
-                  Whether you want to volunteer or need volunteers, we{"'"}d love for you to be part of this.
-                </p>
-                <div className="flex gap-3">
-                  <ScaleOnTap>
-                    <Link href="/signup">
-                      <Button size="lg" className="rounded-full bg-matcha text-espresso hover:bg-matcha-dark font-bold px-8">
-                        Get Started
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </ScaleOnTap>
-                </div>
-              </CardContent>
-            </Card>
+            <motion.div
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-matcha/15"
+            >
+              <Heart className="h-6 w-6 text-matcha-dark" />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-espresso mb-3 md:text-3xl">Come be part of it</h2>
+            <p className="font-serif text-sm italic text-espresso/55 leading-relaxed mb-7">
+              We&apos;re still in pilot mode — early access is limited. Drop your email and we&apos;ll reach out when we&apos;re ready for you.
+            </p>
+            <OurStoryWaitlistForm />
           </SlideUp>
         </div>
       </section>
 
       <Footer />
     </div>
+  )
+}
+
+function OurStoryWaitlistForm() {
+  const [email, setEmail] = useState("")
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+    haptic("medium")
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      if (res.ok) { haptic("success"); setStatus("success"); setEmail("") }
+      else { haptic("error"); setStatus("error") }
+    } catch { haptic("error"); setStatus("error") }
+  }
+
+  if (status === "success") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center justify-center gap-2 font-serif italic text-sm text-matcha-dark"
+      >
+        <CheckCircle2 className="h-4 w-4" />
+        You&apos;re on the list! We&apos;ll be in touch soon.
+      </motion.div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
+      <Input
+        type="email"
+        placeholder="your@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="flex-1 rounded-full border-border/60 bg-card/80 text-sm h-11"
+        disabled={status === "loading"}
+        required
+      />
+      <ScaleOnTap>
+        <Button
+          type="submit"
+          disabled={status === "loading" || !email}
+          className="rounded-full bg-espresso text-cream hover:bg-espresso/85 font-semibold text-sm px-6 h-11"
+        >
+          {status === "loading" ? (
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-cream/20 border-t-cream" />
+          ) : "Join waitlist"}
+        </Button>
+      </ScaleOnTap>
+    </form>
   )
 }

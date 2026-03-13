@@ -1,18 +1,26 @@
 import type { Metadata, Viewport } from 'next'
-import { Nunito } from 'next/font/google'
+import { Lora, DM_Sans } from 'next/font/google'
 import './globals.css'
 
-const _nunito = Nunito({
+const lora = Lora({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-nunito',
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-lora',
+  display: 'swap',
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-dm-sans',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: 'Something | Do Something That Matters',
   description:
-    'Connect with meaningful volunteer opportunities in Metro Vancouver. Earn XP, build skills, and make a real impact in your community.',
-  generator: 'v0.app',
+    'Find meaningful volunteer opportunities in Metro Vancouver. One-tap apply, earn XP, and make a real impact in your community.',
   icons: {
     icon: [
       {
@@ -33,7 +41,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#fefdf5',
+  themeColor: '#fefcf8',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -47,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+      <body className={`${lora.variable} ${dmSans.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

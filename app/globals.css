@@ -1,57 +1,79 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-:root {
-  --background: #FEFDF5;
-  --foreground: #3D2C23;
-  --card: #FFFFFF;
-  --card-foreground: #3D2C23;
-  --popover: #FFFFFF;
-  --popover-foreground: #3D2C23;
-  --primary: #3D2C23;
-  --primary-foreground: #FEFDF5;
-  --secondary: #F5EDE0;
-  --secondary-foreground: #3D2C23;
-  --muted: #F0E8DA;
-  --muted-foreground: #8B7B6B;
-  --accent: #7EC8A0;
-  --accent-foreground: #1B4332;
-  --destructive: #E06B6B;
-  --destructive-foreground: #FEFDF5;
-  --border: #DDD2C3;
-  --input: #EBE3D6;
-  --ring: #7EC8A0;
-  --chart-1: #7EC8A0;
-  --chart-2: #8BB8E0;
-  --chart-3: #3D2C23;
-  --chart-4: #E8B86D;
-  --chart-5: #C9A882;
-  --radius: 1.5rem;
-  --sidebar: #F5EDE0;
-  --sidebar-foreground: #3D2C23;
-  --sidebar-primary: #3D2C23;
-  --sidebar-primary-foreground: #FEFDF5;
-  --sidebar-accent: #7EC8A0;
-  --sidebar-accent-foreground: #1B4332;
-  --sidebar-border: #E6DDD0;
-  --sidebar-ring: #7EC8A0;
-
-  /* Latte design system tokens */
-  --matcha: #7EC8A0;
-  --matcha-dark: #5BAF82;
-  --sky: #8BB8E0;
-  --sky-dark: #6A9FD0;
-  --cream: #FEFDF5;
-  --espresso: #3D2C23;
-  --caramel: #C9A882;
-  --latte: #F5EDE0;
-  --honey: #E8B86D;
-  --rose: #E8A0A0;
+/* ── PP Mondwest — place PPMondwest-Regular.woff2 in /public/fonts/ ── */
+@font-face {
+  font-family: 'PPMondwest';
+  src: url('/fonts/PPMondwest-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
 }
 
+:root {
+  /* Refined milk-tea palette */
+  --background: #FEFCF8;
+  --foreground: #2A1E15;
+  --card: #FFFEF9;
+  --card-foreground: #2A1E15;
+  --popover: #FFFEF9;
+  --popover-foreground: #2A1E15;
+  --primary: #2A1E15;
+  --primary-foreground: #FEFCF8;
+  --secondary: #F2E8D4;
+  --secondary-foreground: #2A1E15;
+  --muted: #EDE3D0;
+  --muted-foreground: #8C7865;
+  --accent: #74BA92;
+  --accent-foreground: #183829;
+  --destructive: #D45858;
+  --destructive-foreground: #FEFCF8;
+  --border: #DDD0BC;
+  --input: #E8DED0;
+  --ring: #74BA92;
+
+  /* Charts */
+  --chart-1: #74BA92;
+  --chart-2: #83AFCF;
+  --chart-3: #2A1E15;
+  --chart-4: #E2AA5E;
+  --chart-5: #C19E7A;
+
+  /* Slightly softer radius — less bubbly, more intentional */
+  --radius: 0.8rem;
+
+  /* Sidebar */
+  --sidebar: #F2E8D4;
+  --sidebar-foreground: #2A1E15;
+  --sidebar-primary: #2A1E15;
+  --sidebar-primary-foreground: #FEFCF8;
+  --sidebar-accent: #74BA92;
+  --sidebar-accent-foreground: #183829;
+  --sidebar-border: #DDD0BC;
+  --sidebar-ring: #74BA92;
+
+  /* Milk-tea design tokens */
+  --matcha: #74BA92;
+  --matcha-dark: #52A374;
+  --sky: #83AFCF;
+  --sky-dark: #5F97BB;
+  --cream: #FEFCF8;
+  --espresso: #2A1E15;
+  --caramel: #C19E7A;
+  --latte: #F2E8D4;
+  --honey: #E2AA5E;
+  --rose: #DC9292;
+}
+
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
-  --font-sans: 'Nunito', 'Nunito Fallback', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+  /* Typography */
+  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  --font-serif: var(--font-lora), 'Lora', 'Georgia', serif;
+  --font-mono: 'Geist Mono', 'Courier New', monospace;
+  --font-display: 'PPMondwest', 'Syne', 'Georgia', serif;
+
+  /* Color tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -106,6 +128,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1;
   }
 }
 
@@ -113,6 +136,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Subtle grain texture overlay for warmth */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.022;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: multiply;
+}
+
+/* Refined scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -125,4 +161,10 @@ html {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--espresso);
+}
+
+/* Selection color */
+::selection {
+  background: color-mix(in srgb, var(--matcha) 30%, transparent);
+  color: var(--espresso);
 }

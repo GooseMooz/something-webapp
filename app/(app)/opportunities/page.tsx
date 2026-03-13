@@ -49,6 +49,19 @@ import {
 import { mockOpportunities, categories } from "@/lib/mock-data"
 import type { Opportunity } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
+import { haptic } from "@/lib/haptics"
+
+/* ── Decorative helpers ─────────────────────────────────── */
+function Asterisk({ size = 20, color = "currentColor", className = "" }: { size?: number; color?: string; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {[0, 45, 90, 135].map((angle) => (
+        <line key={angle} x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round"
+          transform={`rotate(${angle} 12 12)`} />
+      ))}
+    </svg>
+  )
+}
 
 const timeOptions = ["Any", "1-2 hours", "3-4 hours", "5+ hours", "Ongoing"]
 
@@ -119,7 +132,20 @@ export default function OpportunitiesPage() {
     <div className="mx-auto max-w-7xl px-4 py-6 pb-24 md:px-6 md:py-8 md:pb-8">
       {/* Page Header */}
       <FadeIn>
-        <div className="flex flex-col gap-1 mb-5">
+        <div className="flex flex-col gap-1 mb-5 relative">
+          {/* Decorative accents */}
+          <motion.div className="absolute -top-1 right-4 hidden sm:block"
+            initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.5, type: "spring", stiffness: 280 }}>
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }}>
+              <Asterisk size={24} color="var(--matcha)" />
+            </motion.div>
+          </motion.div>
+          <motion.div className="absolute top-2 right-14 hidden sm:block"
+            initial={{ scale: 0 }} animate={{ scale: 1, y: [0, -5, 0] }}
+            transition={{ delay: 0.7, y: { duration: 2.5, repeat: Infinity, ease: "easeInOut" } }}>
+            <Asterisk size={14} color="var(--honey)" />
+          </motion.div>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-extrabold text-espresso md:text-3xl">
               Opportunities
@@ -294,13 +320,16 @@ export default function OpportunitiesPage() {
                         {categories.map((cat) => {
                           const Icon = categoryIconMap[cat] ?? Grid3X3
                           const isActive = selectedCategory === cat
+                          const catColors = categoryColorMap[cat]
                           return (
                             <button
                               key={cat}
-                              onClick={() => setSelectedCategory(cat)}
+                              onClick={() => { setSelectedCategory(cat); haptic("selection") }}
                               className={cn(
                                 "flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-all",
-                                isActive
+                                isActive && catColors
+                                  ? cn(catColors.bg, catColors.text, "ring-1", catColors.border)
+                                  : isActive
                                   ? "bg-espresso text-card"
                                   : "text-espresso/50 hover:bg-latte/60 hover:text-espresso"
                               )}
@@ -323,7 +352,7 @@ export default function OpportunitiesPage() {
                           return (
                             <button
                               key={opt}
-                              onClick={() => setSelectedTime(opt)}
+                              onClick={() => { setSelectedTime(opt); haptic("selection") }}
                               className={cn(
                                 "flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-all",
                                 isActive
@@ -437,7 +466,7 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
       >
         <Card className={cn(cardClass, "group relative overflow-hidden h-full transition-all hover:shadow-md hover:shadow-espresso/[0.06] hover:border-border")}>
           {/* Category color top bar */}
-          <div className={cn("h-1.5 w-full", colors.accent, "opacity-50")} />
+          <div className={cn("h-1.5 w-full", colors.accent, "opacity-80")} />
 
           <CardContent className="flex h-full flex-col p-5">
             {/* Header: org + urgent */}

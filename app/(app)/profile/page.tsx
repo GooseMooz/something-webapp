@@ -31,6 +31,18 @@ import { cn } from "@/lib/utils"
 
 const cardClass = "border-border/60 bg-card shadow-sm shadow-espresso/[0.03]"
 
+/* ── Decorative helpers ─────────────────────────────────── */
+function Asterisk({ size = 20, color = "currentColor", className = "" }: { size?: number; color?: string; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {[0, 45, 90, 135].map((angle) => (
+        <line key={angle} x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="2.2" strokeLinecap="round"
+          transform={`rotate(${angle} 12 12)`} />
+      ))}
+    </svg>
+  )
+}
+
 export default function ProfilePage() {
   const user = mockUser
   const earnedBadges = mockBadges.filter((b) => b.earned)
@@ -40,7 +52,40 @@ export default function ProfilePage() {
       {/* Profile Header Card */}
       <FadeIn>
         <Card className={cn(cardClass, "overflow-hidden mb-5")}>
-          <div className="h-20 bg-gradient-to-r from-matcha/20 via-sky/15 to-honey/15" />
+          {/* Colorful banner with animated decorative elements */}
+          <div className="relative h-24 overflow-hidden bg-gradient-to-r from-matcha/25 via-honey/15 to-rose/20">
+            {/* Animated dots pattern */}
+            {[
+              { x: "8%", y: "30%", color: "var(--matcha)", size: 8, delay: 0 },
+              { x: "20%", y: "60%", color: "var(--honey)", size: 12, delay: 0.3 },
+              { x: "35%", y: "25%", color: "var(--rose)", size: 6, delay: 0.6 },
+              { x: "50%", y: "65%", color: "var(--caramel)", size: 10, delay: 0.2 },
+              { x: "65%", y: "20%", color: "var(--sky)", size: 8, delay: 0.8 },
+              { x: "78%", y: "55%", color: "var(--matcha)", size: 6, delay: 0.4 },
+              { x: "88%", y: "30%", color: "var(--honey)", size: 10, delay: 1.0 },
+            ].map((dot, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full opacity-50"
+                style={{ left: dot.x, top: dot.y, width: dot.size, height: dot.size, backgroundColor: dot.color }}
+                animate={{ y: [0, -6, 0], opacity: [0.5, 0.75, 0.5] }}
+                transition={{ duration: 2.5 + i * 0.4, repeat: Infinity, ease: "easeInOut", delay: dot.delay }}
+              />
+            ))}
+            {/* Asterisk decorations */}
+            <motion.div className="absolute" style={{ left: "42%", top: "15%" }}
+              animate={{ rotate: 360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }}>
+              <Asterisk size={16} color="var(--espresso)" className="opacity-20" />
+            </motion.div>
+            <motion.div className="absolute" style={{ left: "72%", top: "40%" }}
+              animate={{ rotate: -360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}>
+              <Asterisk size={20} color="var(--espresso)" className="opacity-15" />
+            </motion.div>
+            <motion.div className="absolute" style={{ left: "15%", top: "20%" }}
+              animate={{ rotate: 360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }}>
+              <Asterisk size={12} color="var(--espresso)" className="opacity-20" />
+            </motion.div>
+          </div>
           <CardContent className="relative px-5 pb-5 sm:px-6 sm:pb-6">
             <div className="flex flex-col items-center -mt-10 sm:flex-row sm:items-end sm:gap-5">
               {/* Avatar */}
@@ -146,11 +191,22 @@ export default function ProfilePage() {
                   Skills
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {user.skills.map((skill) => (
-                    <Badge key={skill} className="rounded-full border-none bg-matcha/10 text-matcha-dark text-xs font-semibold">
-                      {skill}
-                    </Badge>
-                  ))}
+                  {user.skills.map((skill, i) => {
+                    const colors = [
+                      "bg-matcha/15 text-matcha-dark",
+                      "bg-honey/15 text-espresso/70",
+                      "bg-sky/15 text-sky-dark",
+                      "bg-caramel/15 text-espresso/60",
+                      "bg-rose/12 text-rose",
+                    ]
+                    return (
+                      <motion.div key={skill} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+                        <Badge className={cn("rounded-full border-none text-xs font-semibold", colors[i % colors.length])}>
+                          {skill}
+                        </Badge>
+                      </motion.div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -161,11 +217,22 @@ export default function ProfilePage() {
                   Causes
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {user.causes.map((cause) => (
-                    <Badge key={cause} className="rounded-full border-none bg-sky/10 text-sky-dark text-xs font-semibold">
-                      {cause}
-                    </Badge>
-                  ))}
+                  {user.causes.map((cause, i) => {
+                    const colors = [
+                      "bg-rose/12 text-rose",
+                      "bg-matcha/15 text-matcha-dark",
+                      "bg-caramel/15 text-espresso/60",
+                      "bg-honey/15 text-espresso/70",
+                      "bg-sky/15 text-sky-dark",
+                    ]
+                    return (
+                      <motion.div key={cause} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+                        <Badge className={cn("rounded-full border-none text-xs font-semibold", colors[i % colors.length])}>
+                          {cause}
+                        </Badge>
+                      </motion.div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -177,29 +244,34 @@ export default function ProfilePage() {
       <SlideUp delay={0.15}>
         <Card className={cardClass}>
           <CardContent className="p-5">
-            <h3 className="text-sm font-bold text-espresso mb-4 flex items-center gap-1.5">
+            <h3 className="text-sm font-bold text-espresso mb-4 flex items-center gap-2">
               <Award className="h-4 w-4 text-honey" />
               {"Earned Badges ("}{earnedBadges.length}{")"}
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}>
+                <Asterisk size={13} color="var(--honey)" />
+              </motion.div>
             </h3>
             <StaggerChildren className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
               {earnedBadges.map((badge, idx) => {
                 const badgeColors = [
-                  "bg-matcha/12 text-matcha-dark",
-                  "bg-sky/12 text-sky-dark",
-                  "bg-honey/12 text-espresso/70",
-                  "bg-rose/10 text-rose",
-                  "bg-caramel/12 text-espresso/60",
+                  { bg: "bg-matcha/20", text: "text-matcha-dark", ring: "ring-matcha/30" },
+                  { bg: "bg-honey/20", text: "text-espresso/70", ring: "ring-honey/30" },
+                  { bg: "bg-sky/20", text: "text-sky-dark", ring: "ring-sky/30" },
+                  { bg: "bg-rose/15", text: "text-rose", ring: "ring-rose/25" },
+                  { bg: "bg-caramel/20", text: "text-espresso/60", ring: "ring-caramel/30" },
                 ]
+                const color = badgeColors[idx % badgeColors.length]
                 return (
                 <StaggerItem key={badge.id}>
                   <div className="flex flex-col items-center gap-1.5">
                     <motion.div
-                      whileHover={{ rotate: 8, scale: 1.1 }}
-                      className={cn("flex h-12 w-12 items-center justify-center rounded-xl", badgeColors[idx % badgeColors.length])}
+                      whileHover={{ rotate: 10, scale: 1.12 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                      className={cn("flex h-12 w-12 items-center justify-center rounded-xl ring-1", color.bg, color.text, color.ring)}
                     >
                       <Award className="h-5 w-5" />
                     </motion.div>
-                    <span className="text-[9px] font-semibold text-espresso/50 text-center leading-tight">
+                    <span className={cn("text-[9px] font-semibold text-center leading-tight", color.text, "opacity-80")}>
                       {badge.name}
                     </span>
                   </div>

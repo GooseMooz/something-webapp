@@ -2,6 +2,7 @@
 
 import { motion, type HTMLMotionProps, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { haptic, type HapticPattern } from "@/lib/haptics"
 import React from "react"
 
 /* ── FadeIn ─── */
@@ -108,14 +109,16 @@ export function SlideUp({
   )
 }
 
-/* ── ScaleOnTap: juicy button "pop" ─── */
+/* ── ScaleOnTap: juicy button "pop" + haptic feedback ─── */
 export function ScaleOnTap({
   children,
   className,
+  hapticPattern = "light",
   ...props
 }: {
   children: React.ReactNode
   className?: string
+  hapticPattern?: HapticPattern
 } & Omit<HTMLMotionProps<"div">, "children">) {
   return (
     <motion.div
@@ -123,6 +126,7 @@ export function ScaleOnTap({
       whileHover={{ scale: 1.03, y: -2 }}
       transition={{ type: "spring", stiffness: 500, damping: 15 }}
       className={cn("inline-flex", className)}
+      onTapStart={() => haptic(hapticPattern)}
       {...props}
     >
       {children}
