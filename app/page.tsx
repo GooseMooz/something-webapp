@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useRef } from "react"
+import React from "react"
 import { ArrowRight, Sparkles, Heart, TrendingUp, MapPin, Clock, Zap, Star, Leaf, UtensilsCrossed, Landmark, Trophy, CalendarHeart, BookOpen, Users, CheckCircle2, Shield, Send } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -74,26 +75,6 @@ export default function HomePage() {
             <Link href="/for-organizations">
               <Button variant="ghost" className="rounded-full text-sm font-medium text-espresso/55 hover:text-espresso hover:bg-latte/60">For Orgs</Button>
             </Link>
-            <Link href="/login">
-              <Button variant="outline" className="rounded-full border-border/70 text-sm font-medium text-espresso/70 hover:text-espresso hover:bg-latte/40 ml-1">Log In</Button>
-            </Link>
-            <ScaleOnTap>
-              <Link href="/signup">
-                <Button className="rounded-full bg-espresso text-cream hover:bg-espresso/85 text-sm font-semibold ml-1">
-                  Get Started <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </ScaleOnTap>
-          </div>
-          <div className="flex items-center gap-2 sm:hidden">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="rounded-full text-sm font-medium text-espresso/60">Log In</Button>
-            </Link>
-            <ScaleOnTap>
-              <Link href="/signup">
-                <Button size="sm" className="rounded-full bg-espresso text-cream hover:bg-espresso/85 text-sm font-semibold">Join</Button>
-              </Link>
-            </ScaleOnTap>
           </div>
         </nav>
       </motion.header>
@@ -274,26 +255,6 @@ export default function HomePage() {
               </p>
             </FadeIn>
 
-            <FadeIn delay={0.55}>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <ScaleOnTap>
-                  <Link href="/signup">
-                    <Shimmer>
-                      <Button size="lg" className="rounded-full bg-matcha px-9 py-6 text-base font-semibold text-espresso hover:bg-matcha-dark">
-                        Find Opportunities <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Shimmer>
-                  </Link>
-                </ScaleOnTap>
-                <ScaleOnTap>
-                  <Link href="/for-organizations">
-                    <Button variant="outline" size="lg" className="rounded-full border-border/60 px-9 py-6 text-base font-medium text-espresso hover:bg-latte/60">
-                      I run an organization
-                    </Button>
-                  </Link>
-                </ScaleOnTap>
-              </div>
-            </FadeIn>
 
             <FadeIn delay={0.7}>
               <div className="mt-12 flex items-center gap-3 rounded-full bg-card/85 px-5 py-2.5 shadow-sm backdrop-blur-sm border border-border/40">
@@ -311,7 +272,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <p className="text-sm text-espresso/50">
-                  <span className="font-semibold text-espresso">2,400+</span> people already volunteering
+                  <MysteryNumber /> people already
                 </p>
               </div>
             </FadeIn>
@@ -344,15 +305,13 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* ── INLINE WAITLIST ── */}
-      <section className="border-y border-border/40 bg-latte/40 px-4 py-8 md:py-10">
-        <div className="mx-auto max-w-xl text-center">
-          <p className="font-serif text-sm italic text-espresso/55 mb-4">
-            We&apos;re still in pilot mode — sign up for early access and help shape what comes next.
-          </p>
-          <HeroWaitlistForm />
-        </div>
-      </section>
+      <WaitlistSection />
+
+      {/* ── Arrow: waitlist → how it works ── */}
+      <div className="relative h-10 overflow-visible">
+        <CurvedArrow color="var(--matcha)" className="absolute left-[18%] -top-2" delay={0.2} />
+        <CurvedArrow color="var(--honey)" className="absolute right-[22%] -top-1" delay={0.4} flip />
+      </div>
 
       {/* ══════════════════════════════════════════
           HOW IT WORKS
@@ -421,6 +380,11 @@ export default function HomePage() {
 
       {/* Decorative wavy section divider */}
       <WavyDivider color="var(--matcha)" opacity={0.18} />
+
+      {/* ── Arrow: how it works → XP ── */}
+      <div className="relative h-10 overflow-visible">
+        <CurvedArrow color="var(--caramel)" className="absolute right-[15%] -top-3" delay={0.1} flip />
+      </div>
 
       {/* ══════════════════════════════════════════
           XP SYSTEM
@@ -498,6 +462,11 @@ export default function HomePage() {
 
       <WavyDivider color="var(--honey)" opacity={0.15} flip />
 
+      {/* ── Arrow: XP → Focus Areas ── */}
+      <div className="relative h-10 overflow-visible">
+        <CurvedArrow color="var(--honey)" className="absolute left-[25%] -top-2" delay={0.15} />
+      </div>
+
       {/* ══════════════════════════════════════════
           FOCUS AREAS
       ══════════════════════════════════════════ */}
@@ -520,7 +489,7 @@ export default function HomePage() {
             {[
               { icon: Leaf,            title: "Environmental",    description: "Beach cleanups, trail restoration, community gardens, climate action. Get your hands in the dirt and see the results.", iconBg: "bg-matcha/20 text-matcha-dark",   cardBorder: "border-t-[3px] border-t-matcha/40",   dotColor: "bg-matcha/30" },
               { icon: Landmark,        title: "Civic & Community", description: "Welcome events for newcomers, senior socials, neighbourhood building. The kind of work that creates real friendships.", iconBg: "bg-honey/20 text-espresso/70",    cardBorder: "border-t-[3px] border-t-honey/40",    dotColor: "bg-honey/40"  },
-              { icon: UtensilsCrossed, title: "Food & Agriculture", description: "Food bank sorting, community kitchen shifts, urban farming. Nourish your community, literally.",                       iconBg: "bg-caramel/20 text-espresso/70", cardBorder: "border-t-[3px] border-t-caramel/40",  dotColor: "bg-caramel/35"},
+              { icon: UtensilsCrossed, title: "Food", description: "Food bank sorting, community kitchen shifts, urban farming. Nourish your community, literally.",                       iconBg: "bg-caramel/20 text-espresso/70", cardBorder: "border-t-[3px] border-t-caramel/40",  dotColor: "bg-caramel/35"},
             ].map((area) => (
               <StaggerItem key={area.title}>
                 <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -544,6 +513,12 @@ export default function HomePage() {
       </section>
 
       <WavyDivider color="var(--caramel)" opacity={0.14} />
+
+      {/* ── Arrow: Focus Areas → Opportunities ── */}
+      <div className="relative h-10 overflow-visible">
+        <CurvedArrow color="var(--rose)" className="absolute right-[20%] -top-3" delay={0.1} flip />
+        <CurvedArrow color="var(--matcha)" className="absolute left-[12%] -top-1" delay={0.3} />
+      </div>
 
       {/* ══════════════════════════════════════════
           FEATURED OPPORTUNITIES
@@ -569,29 +544,53 @@ export default function HomePage() {
             </div>
           </SlideUp>
 
-          <StaggerChildren className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((op) => (
-              <StaggerItem key={op.id} className="h-full">
-                <FeaturedCard opportunity={op} />
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
-
-          <SlideUp delay={0.3}>
-            <div className="mt-12 flex justify-center">
-              <ScaleOnTap>
-                <Link href="/opportunities">
-                  <Button variant="outline" size="lg" className="rounded-full border-border/70 px-9 py-6 font-medium text-espresso hover:bg-latte/50">
-                    Browse all opportunities <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </ScaleOnTap>
+          <div className="relative">
+            {/* Ghost cards peeking from left — desktop only */}
+            <div className="hidden lg:block pointer-events-none absolute -left-2 top-0 bottom-0 w-[130px] z-10">
+              <div className="h-full flex flex-col gap-4 opacity-35" style={{ filter: "blur(2.5px)", transform: "scale(0.95)", transformOrigin: "right center" }}>
+                {mockOpportunities.filter(op => !op.featured).slice(0, 2).map(op => (
+                  <div key={op.id} className="flex-1 min-h-0"><FeaturedCard opportunity={op} /></div>
+                ))}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background" />
             </div>
-          </SlideUp>
+
+            {/* Main 2×2 grid */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mx-auto max-w-sm sm:max-w-2xl">
+              {featured.map((op, i) => (
+                <motion.div
+                  key={op.id}
+                  className="h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.4 }}
+                >
+                  <FeaturedCard opportunity={op} />
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Ghost cards peeking from right — desktop only */}
+            <div className="hidden lg:block pointer-events-none absolute -right-2 top-0 bottom-0 w-[130px] z-10">
+              <div className="h-full flex flex-col gap-4 opacity-35" style={{ filter: "blur(2.5px)", transform: "scale(0.95)", transformOrigin: "left center" }}>
+                {mockOpportunities.filter(op => !op.featured).slice(2, 4).map(op => (
+                  <div key={op.id} className="flex-1 min-h-0"><FeaturedCard opportunity={op} /></div>
+                ))}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent to-background" />
+            </div>
+          </div>
+
         </div>
       </section>
 
       <WavyDivider color="var(--rose)" opacity={0.13} flip />
+
+      {/* ── Arrow: Opportunities → Partners ── */}
+      <div className="relative h-10 overflow-visible">
+        <CurvedArrow color="var(--sky)" className="absolute left-[30%] -top-2" delay={0.1} />
+      </div>
 
       {/* ══════════════════════════════════════════
           COMMUNITY PARTNERS
@@ -612,30 +611,40 @@ export default function HomePage() {
             </div>
           </SlideUp>
 
-          <StaggerChildren className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { org: "Nature Vancouver",  program: "New Brighton Park Restoration", abbr: "NV", iconBg: "bg-matcha/20 text-matcha-dark",   border: "border-matcha/25" },
-              { org: "DIVERSECity",       program: "Youth for People & the Planet", abbr: "DC", iconBg: "bg-honey/20 text-espresso/80",    border: "border-honey/25"  },
-              { org: "Apathy is Boring",  program: "RISE",                          abbr: "AB", iconBg: "bg-caramel/20 text-espresso/70",  border: "border-caramel/25"},
-              { org: "CityHive",          program: "Youth Climate Action",          abbr: "CH", iconBg: "bg-rose/15 text-rose",            border: "border-rose/20"   },
-            ].map((partner) => (
-              <StaggerItem key={partner.org}>
-                <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Card className={cn(cardClass, "h-full border-2", partner.border)}>
-                    <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                      <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl font-bold text-sm", partner.iconBg)}>
-                        {partner.abbr}
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-espresso">{partner.org}</h3>
-                        <p className="font-serif text-[11px] italic text-espresso/45 mt-1">{partner.program}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <PartnerCard
+              org="Nature Vancouver"
+              program="New Brighton Park Restoration"
+              abbr="NV"
+              iconBg="bg-matcha/20 text-matcha-dark"
+              border="border-matcha/25"
+              effect="nature"
+            />
+            <PartnerCard
+              org="DIVERSECity"
+              program="Youth for People & the Planet"
+              abbr="DC"
+              iconBg="bg-honey/20 text-espresso/80"
+              border="border-honey/25"
+              effect="city"
+            />
+            <PartnerCard
+              org="Apathy is Boring"
+              program="RISE"
+              abbr="AB"
+              iconBg="bg-caramel/20 text-espresso/70"
+              border="border-caramel/25"
+              effect="apathy"
+            />
+            <PartnerCard
+              org="CityHive"
+              program="Youth Civic Action"
+              abbr="CH"
+              iconBg="bg-rose/15 text-rose"
+              border="border-rose/20"
+              effect="hive"
+            />
+          </div>
         </div>
       </section>
 
@@ -657,15 +666,9 @@ export default function HomePage() {
                 <Badge className="mb-5 rounded-full border-matcha/35 bg-matcha/12 px-4 py-1.5 text-xs font-medium text-matcha-dark">
                   Active Pilot
                 </Badge>
-                <h2 className="text-3xl font-bold text-espresso md:text-4xl text-balance mb-5">
+                <h2 className="text-3xl font-bold text-espresso md:text-4xl text-balance mb-7">
                   We&apos;re building this together.
                 </h2>
-                <p className="font-serif text-sm text-espresso/55 leading-relaxed mb-3">
-                  Something is a live pilot based in Metro Vancouver. We&apos;re working with a small group of organizations and volunteers, and iterating based on real feedback from real people.
-                </p>
-                <p className="font-serif text-sm text-espresso/55 leading-relaxed mb-7">
-                  Every feature, every flow, every small decision is shaped by the people using it. If something doesn&apos;t feel right, we genuinely want to know.
-                </p>
 
                 <Card className={cn(cardClass, "overflow-hidden mb-5 border-l-[3px] border-l-matcha/50")}>
                   <CardContent className="p-5">
@@ -695,13 +698,18 @@ export default function HomePage() {
             </SlideUp>
 
             <SlideUp delay={0.1}>
-              <FeedbackForm />
+              <MailFeedback />
             </SlideUp>
           </div>
         </div>
       </section>
 
       <WavyDivider color="var(--honey)" opacity={0.14} flip />
+
+      {/* ── Arrow: Pilot/Feedback → What's Coming ── */}
+      <div className="relative h-10 overflow-visible">
+        <CurvedArrow color="var(--caramel)" className="absolute right-[28%] -top-1" delay={0.2} flip />
+      </div>
 
       {/* ══════════════════════════════════════════
           WHAT'S COMING
@@ -727,28 +735,79 @@ export default function HomePage() {
             </SlideUp>
 
             <SlideUp delay={0.1}>
-              <div className="flex flex-col gap-3">
+              <div className="relative grid grid-cols-2 gap-6 pt-4">
                 {[
-                  { title: "Volunteer Buddies & Crews", description: "Get matched with a buddy or join a regular crew for ongoing projects. Never show up alone.", icon: Users,        iconBg: "bg-matcha/20 text-matcha-dark",   tag: "Community" },
-                  { title: "Climate Cafes",             description: "Casual pop-up events where youth talk climate action over drinks. Think meetup, not lecture.",          icon: CalendarHeart, iconBg: "bg-honey/20 text-espresso/70",    tag: "Events"    },
-                  { title: "Volunteer socials",         description: "Movie nights, game tournaments, and potlucks for our most active volunteers.",                           icon: Heart,        iconBg: "bg-rose/15 text-rose",            tag: "Community" },
-                  { title: "Learning resources",        description: "Curated guides, workshops, and micro-certifications to build skills while you give back.",               icon: BookOpen,     iconBg: "bg-caramel/20 text-espresso/70",  tag: "Learning"  },
-                ].map((item) => (
-                  <motion.div key={item.title} whileHover={{ x: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                    <Card className={cn(cardClass, "overflow-hidden")}>
-                      <CardContent className="p-4 flex items-start gap-4">
-                        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg shrink-0", item.iconBg)}>
-                          <item.icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-semibold text-espresso">{item.title}</h3>
-                            <Badge className="rounded-full border-none bg-espresso/5 text-espresso/40 text-[10px] font-medium">{item.tag}</Badge>
-                          </div>
-                          <p className="font-serif text-xs text-espresso/50 leading-relaxed">{item.description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {
+                    title: "Volunteer Buddies & Crews",
+                    emoji: "🫂",
+                    color: "var(--matcha)",
+                    bg: "bg-matcha/12",
+                    border: "border-matcha/25",
+                    delay: 0,
+                    dur: 3.4,
+                    shape: "68% 32% 55% 45% / 45% 55% 45% 55%",
+                    tag: "Community",
+                  },
+                  {
+                    title: "Climate Cafes",
+                    emoji: "☕",
+                    color: "var(--honey)",
+                    bg: "bg-honey/15",
+                    border: "border-honey/30",
+                    delay: 0.5,
+                    dur: 3.8,
+                    shape: "45% 55% 65% 35% / 60% 40% 60% 40%",
+                    tag: "Events",
+                  },
+                  {
+                    title: "Volunteer Socials",
+                    emoji: "🎉",
+                    color: "var(--rose)",
+                    bg: "bg-rose/12",
+                    border: "border-rose/25",
+                    delay: 0.25,
+                    dur: 4.1,
+                    shape: "55% 45% 40% 60% / 50% 60% 40% 50%",
+                    tag: "Community",
+                  },
+                  {
+                    title: "Learning Resources",
+                    emoji: "📚",
+                    color: "var(--caramel)",
+                    bg: "bg-caramel/15",
+                    border: "border-caramel/30",
+                    delay: 0.75,
+                    dur: 3.6,
+                    shape: "40% 60% 55% 45% / 55% 45% 55% 45%",
+                    tag: "Learning",
+                  },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.title}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: item.dur, repeat: Infinity, ease: "easeInOut", delay: item.delay }}
+                    whileHover={{ scale: 1.06 }}
+                    className="flex items-center justify-center"
+                  >
+                    <motion.div
+                      className={cn("w-full p-5 border-2 shadow-sm cursor-default flex flex-col items-center text-center gap-3", item.bg, item.border)}
+                      style={{ borderRadius: item.shape }}
+                      initial={{ opacity: 0, scale: 0.7, rotate: -5 }}
+                      whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ type: "spring", stiffness: 200, damping: 18, delay: i * 0.12 }}
+                    >
+                      <span className="text-3xl leading-none" role="img" aria-label={item.title}>
+                        {item.emoji}
+                      </span>
+                      <p className="text-xs font-semibold text-espresso leading-snug">{item.title}</p>
+                      <span
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: item.color + "22", color: item.color }}
+                      >
+                        {item.tag}
+                      </span>
+                    </motion.div>
                   </motion.div>
                 ))}
               </div>
@@ -793,15 +852,12 @@ export default function HomePage() {
                 <p className="font-serif max-w-lg text-base text-cream/55 leading-relaxed md:text-lg text-pretty">
                   Find something worth giving your time to. It might change how you spend your weekends.
                 </p>
-                <ScaleOnTap>
-                  <Link href="/signup">
-                    <Shimmer>
-                      <Button size="lg" className="rounded-full bg-matcha px-9 py-6 text-base font-semibold text-espresso hover:bg-matcha-dark">
-                        Get started <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Shimmer>
-                  </Link>
-                </ScaleOnTap>
+                <FinalCTAForm />
+                <a href="mailto:hi@somethingmatters.ca">
+                  <Button variant="ghost" className="rounded-full text-cream/50 hover:text-cream hover:bg-cream/10 text-sm font-medium">
+                    or say hi at hi@somethingmatters.ca
+                  </Button>
+                </a>
               </CardContent>
             </Card>
           </SlideUp>
@@ -809,6 +865,530 @@ export default function HomePage() {
       </section>
 
       <Footer />
+    </div>
+  )
+}
+
+/* ── Mystery Number — slowly morphing blob ── */
+function MysteryNumber() {
+  return (
+    <span className="relative inline-flex items-center justify-center align-middle mx-1" style={{ width: 52, height: 26 }}>
+      <motion.span
+        className="absolute inset-0 bg-espresso/12"
+        animate={{
+          borderRadius: [
+            "60% 40% 55% 45% / 50% 60% 40% 50%",
+            "45% 55% 40% 60% / 60% 40% 55% 45%",
+            "55% 45% 65% 35% / 40% 60% 50% 50%",
+            "40% 60% 50% 50% / 55% 45% 60% 40%",
+            "60% 40% 55% 45% / 50% 60% 40% 50%",
+          ],
+        }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <span className="relative z-10 font-semibold text-espresso/30 text-xs select-none" style={{ filter: "blur(2px)", letterSpacing: "0.08em" }}>
+        ???
+      </span>
+    </span>
+  )
+}
+
+/* ── Waitlist Section ── */
+function WaitlistSection() {
+  const [hovered, setHovered] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: false, amount: 0.5 })
+  const showParticles = hovered || isInView
+
+  const baseParticles = [
+    { color: "var(--honey)",    x: "12%", y: "60%", size: 8, dur: 3.2 },
+    { color: "var(--rose)",     x: "85%", y: "55%", size: 6, dur: 4.1 },
+    { color: "var(--caramel)",  x: "75%", y: "25%", size: 7, dur: 3.6 },
+    { color: "var(--sky)",      x: "28%", y: "80%", size: 5, dur: 2.9 },
+    { color: "var(--honey)",    x: "60%", y: "15%", size: 4, dur: 3.8 },
+  ]
+  const extraParticles = [
+    { color: "var(--rose)",     x: "35%", y: "45%", size: 5,  dur: 2.6 },
+    { color: "var(--caramel)",  x: "55%", y: "70%", size: 6,  dur: 3.4 },
+    { color: "var(--honey)",    x: "90%", y: "35%", size: 4,  dur: 2.8 },
+    { color: "var(--sky)",      x: "8%",  y: "40%", size: 7,  dur: 4.0 },
+    { color: "var(--rose)",     x: "70%", y: "85%", size: 5,  dur: 3.1 },
+    { color: "var(--honey)",    x: "45%", y: "20%", size: 8,  dur: 2.5 },
+    { color: "var(--caramel)",  x: "18%", y: "30%", size: 4,  dur: 3.7 },
+    { color: "var(--rose)",     x: "80%", y: "65%", size: 6,  dur: 2.9 },
+  ]
+
+  return (
+    <section
+      ref={ref}
+      className="relative border-y border-border/40 overflow-hidden px-4 py-12 md:py-16"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Warm background — no green */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cream/90 via-latte/60 to-honey/20" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tl from-rose/8 via-transparent to-sky/8" />
+      {/* Ambient blobs */}
+      <div className="pointer-events-none absolute left-[5%] top-[20%] h-32 w-32 rounded-full bg-honey/18 blur-3xl" />
+      <div className="pointer-events-none absolute right-[8%] bottom-[15%] h-28 w-28 rounded-full bg-rose/15 blur-3xl" />
+      <div className="pointer-events-none absolute left-[40%] bottom-[10%] h-20 w-20 rounded-full bg-sky/12 blur-2xl" />
+
+      {/* Floating asterisks */}
+      <motion.div className="pointer-events-none absolute left-[6%] top-[25%] opacity-50"
+        animate={{ rotate: 360 }} transition={{ duration: 14, repeat: Infinity, ease: "linear" }}>
+        <Asterisk size={22} color="var(--honey)" />
+      </motion.div>
+      <motion.div className="pointer-events-none absolute right-[7%] top-[30%] opacity-45"
+        animate={{ rotate: -360, y: [0, -6, 0] }}
+        transition={{ rotate: { duration: 10, repeat: Infinity, ease: "linear" }, y: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}>
+        <Asterisk size={18} color="var(--rose)" />
+      </motion.div>
+      <motion.div className="pointer-events-none absolute right-[18%] bottom-[20%] opacity-40"
+        animate={{ rotate: 360 }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }}>
+        <Asterisk size={14} color="var(--caramel)" />
+      </motion.div>
+      <motion.div className="pointer-events-none absolute left-[20%] bottom-[15%] opacity-40"
+        animate={{ y: [0, -5, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}>
+        <Asterisk size={12} color="var(--honey)" />
+      </motion.div>
+
+      {/* Base particles */}
+      {baseParticles.map((dot, i) => (
+        <motion.div key={i} className="pointer-events-none absolute rounded-full opacity-55"
+          style={{ left: dot.x, top: dot.y, width: dot.size, height: dot.size, backgroundColor: dot.color }}
+          animate={{ y: [0, -8, 0] }} transition={{ duration: dot.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
+        />
+      ))}
+
+      {/* Extra particles on hover / scroll-into-view */}
+      <AnimatePresence>
+        {showParticles && extraParticles.map((dot, i) => (
+          <motion.div
+            key={`extra-${i}`}
+            className="pointer-events-none absolute rounded-full"
+            style={{ left: dot.x, top: dot.y, width: dot.size, height: dot.size, backgroundColor: dot.color }}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 0.5, scale: 1, y: [0, -10, 0] }}
+            exit={{ opacity: 0, scale: 0 }}
+            transition={{
+              opacity: { duration: 0.4, delay: i * 0.05 },
+              scale: { duration: 0.4, delay: i * 0.05 },
+              y: { duration: dot.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.12 },
+            }}
+          />
+        ))}
+      </AnimatePresence>
+
+      <div className="relative z-10 mx-auto max-w-xl text-center">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }}
+          viewport={{ once: true }} transition={{ duration: 0.5 }}>
+          <Badge className="mb-4 rounded-full border-honey/40 bg-honey/20 px-4 py-1.5 text-xs font-semibold text-espresso/70">
+            ✦ Early Access
+          </Badge>
+        </motion.div>
+        <SlideUp>
+          <h2 className="font-display text-2xl tracking-wide text-espresso mb-2 md:text-3xl">
+            Be{" "}
+            <motion.span
+              style={{ display: "inline-block" }}
+              animate={{
+                skewX: [0, -15, 4, -8, 0],
+                x: [0, 3, -1, 1, 0],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                repeatDelay: 2,
+                times: [0, 0.25, 0.5, 0.68, 1],
+                ease: "easeInOut",
+              }}
+            >
+              first
+            </motion.span>
+            {" "}in line
+          </h2>
+          <p className="font-serif text-sm italic text-espresso/55 mb-6 leading-relaxed">
+            We&apos;re still in pilot mode — join the waitlist and help shape what comes next.
+          </p>
+          <HeroWaitlistForm />
+        </SlideUp>
+      </div>
+    </section>
+  )
+}
+
+/* ── Partner Card with unique hover effects ── */
+function PartnerCard({
+  org, program, abbr, iconBg, border, effect,
+}: {
+  org: string; program: string; abbr: string; iconBg: string; border: string;
+  effect: "nature" | "city" | "apathy" | "hive"
+}) {
+  const [hovered, setHovered] = React.useState(false)
+  const [isMobile, setIsMobile] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: false, margin: "-25% 0px -25% 0px" })
+
+  React.useEffect(() => {
+    setIsMobile(window.matchMedia("(pointer: coarse)").matches)
+  }, [])
+
+  // Desktop: hover only. Mobile: scroll to center of screen only.
+  const showEffect = hovered || (isMobile && isInView)
+
+  return (
+    <StaggerItem>
+      {/* Outer wrapper manages all three layers */}
+      <div
+        ref={ref}
+        className="relative"
+        style={{ isolation: "isolate" }}
+        onMouseEnter={() => !isMobile && setHovered(true)}
+        onMouseLeave={() => !isMobile && setHovered(false)}
+      >
+        {/* LAYER 0: behind-card overlay — city buildings, hive glow */}
+        {(effect === "city" || effect === "hive") && (
+          <div className="absolute pointer-events-none" style={{ inset: -28, zIndex: 0, overflow: "visible" }}>
+            {effect === "city" && <CityOverlay hovered={showEffect} />}
+            {effect === "hive" && <HiveOverlay hovered={showEffect} />}
+          </div>
+        )}
+
+        {/* LAYER 1: card itself */}
+        <motion.div
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          style={{ position: "relative", zIndex: 1 }}
+        >
+          <Card className={cn(cardClass, "h-full border-2", border)}>
+            <CardContent className="relative z-10 p-5 flex flex-col items-center text-center gap-3">
+              <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl font-bold text-sm", iconBg)}>
+                {abbr}
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-espresso">{org}</h3>
+                <p className="font-serif text-xs text-espresso mt-1">{program}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* LAYER 2: around-card overlay — nature vines, apathy particles */}
+        {(effect === "nature" || effect === "apathy") && (
+          <div className="absolute pointer-events-none" style={{ inset: -28, zIndex: 2, overflow: "visible" }}>
+            {effect === "nature" && <NatureOverlay hovered={showEffect} />}
+            {effect === "apathy" && <ApathyOverlay hovered={showEffect} />}
+          </div>
+        )}
+      </div>
+    </StaggerItem>
+  )
+}
+
+function NatureOverlay({ hovered }: { hovered: boolean }) {
+  // Overlay div has inset: -28 — this SVG covers card + 28px margin on all sides.
+  // Vines stay in the left margin (x ≤ 28) and right margin (x ≥ card-right) — never over card text.
+  // viewBox 0 0 256 240: card occupies roughly x:28→228, y:28→212
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
+      {/* Left vine — travels up the left margin */}
+      <motion.path
+        d="M28 212 C18 188 24 162 10 136 C-2 112 14 88 6 62 C0 42 14 20 6 2"
+        stroke="var(--matcha)" strokeWidth="2.5" strokeLinecap="round" fill="none"
+        initial={{ pathLength: 0 }} animate={{ pathLength: hovered ? 1 : 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      />
+      {/* Right vine */}
+      <motion.path
+        d="M228 212 C238 186 232 160 246 134 C258 110 242 86 250 60 C256 40 242 18 250 2"
+        stroke="var(--matcha)" strokeWidth="2" strokeLinecap="round" fill="none"
+        initial={{ pathLength: 0 }} animate={{ pathLength: hovered ? 1 : 0 }}
+        transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
+      />
+      {/* Leaves left */}
+      {[{ cx: 14, cy: 178, rx: 11, ry: 5, r: -28 }, { cx: 22, cy: 144, rx: 10, ry: 4.5, r: 22 }, { cx: 8, cy: 110, rx: 9, ry: 4, r: -18 }, { cx: 18, cy: 78, rx: 8, ry: 3.5, r: 26 }].map((l, i) => (
+        <motion.ellipse key={i} cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry}
+          fill="var(--matcha)" fillOpacity={0.6}
+          style={{ rotate: `${l.r}deg` }}
+          initial={{ scale: 0 }} animate={{ scale: hovered ? 1 : 0 }}
+          transition={{ delay: 0.2 + i * 0.1, duration: 0.3, type: "spring", stiffness: 300 }}
+        />
+      ))}
+      {/* Leaves right */}
+      {[{ cx: 242, cy: 174, rx: 10, ry: 4.5, r: 26 }, { cx: 234, cy: 140, rx: 9, ry: 4, r: -22 }, { cx: 248, cy: 106, rx: 8, ry: 3.5, r: 28 }, { cx: 240, cy: 74, rx: 7, ry: 3, r: -18 }].map((l, i) => (
+        <motion.ellipse key={i} cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry}
+          fill="var(--matcha)" fillOpacity={0.45}
+          style={{ rotate: `${l.r}deg` }}
+          initial={{ scale: 0 }} animate={{ scale: hovered ? 1 : 0 }}
+          transition={{ delay: 0.3 + i * 0.1, duration: 0.3, type: "spring", stiffness: 300 }}
+        />
+      ))}
+      {/* Honey flowers */}
+      {[{ cx: 20, cy: 160, r: 4 }, { cx: 10, cy: 94, r: 3.5 }, { cx: 246, cy: 156, r: 4 }, { cx: 238, cy: 90, r: 3.5 }].map((f, i) => (
+        <motion.circle key={i} cx={f.cx} cy={f.cy} r={f.r}
+          fill="var(--honey)" fillOpacity={0.75}
+          initial={{ scale: 0 }} animate={{ scale: hovered ? 1 : 0 }}
+          transition={{ delay: 0.4 + i * 0.08, duration: 0.25, type: "spring", stiffness: 400 }}
+        />
+      ))}
+    </svg>
+  )
+}
+
+function CityOverlay({ hovered }: { hovered: boolean }) {
+  // Overlay div has inset: -28. Card is roughly at y:28→212, x:28→228 in this coord system.
+  // Buildings rise from the bottom (y=240). Tallest ones (h>184) peek above card top (y=28).
+  const buildings = [
+    { x: 0,   w: 30, h: 155, color: "var(--honey)",   delay: 0.00 },
+    { x: 32,  w: 24, h: 210, color: "var(--caramel)", delay: 0.06 }, // peeks above card
+    { x: 58,  w: 28, h: 138, color: "var(--sky)",     delay: 0.03 },
+    { x: 90,  w: 22, h: 220, color: "var(--honey)",   delay: 0.10 }, // peeks above card
+    { x: 116, w: 26, h: 168, color: "var(--caramel)", delay: 0.04 },
+    { x: 146, w: 24, h: 198, color: "var(--sky)",     delay: 0.08 }, // peeks above card
+    { x: 174, w: 28, h: 148, color: "var(--honey)",   delay: 0.02 },
+    { x: 206, w: 22, h: 185, color: "var(--caramel)", delay: 0.07 },
+    { x: 230, w: 26, h: 128, color: "var(--sky)",     delay: 0.05 },
+  ]
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
+      {buildings.map((b, i) => (
+        <g key={i}>
+          <motion.rect
+            x={b.x} y={240 - b.h} width={b.w} height={b.h}
+            fill={b.color} fillOpacity={0.18}
+            style={{ transformOrigin: `${b.x + b.w / 2}px 240px` }}
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: hovered ? 1 : 0 }}
+            transition={{ duration: 0.55, delay: b.delay, ease: [0.34, 1.56, 0.64, 1] }}
+          />
+          {[0, 1, 2, 3].map(row => (
+            <motion.rect key={row}
+              x={b.x + 5} y={240 - b.h + 14 + row * 22} width={b.w - 12} height={8}
+              fill={b.color} fillOpacity={0.55}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: hovered ? 1 : 0 }}
+              transition={{ delay: b.delay + 0.28 + row * 0.05, duration: 0.2 }}
+            />
+          ))}
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+function ApathyOverlay({ hovered }: { hovered: boolean }) {
+  // Overlay div has inset: -28. Card occupies x:28→228, y:28→212 in this coord system.
+  // Particles burst FROM card edges outward into the margin area.
+  // Squiggles trace along card edges and spill outside.
+  const particles = [
+    // Left edge bursts — travel left into margin
+    { x: 28,  y: 100, vx: -55, vy: -20, color: "var(--rose)",    r: 4.5 },
+    { x: 28,  y: 140, vx: -60, vy:  10, color: "var(--honey)",   r: 3.5 },
+    { x: 28,  y: 70,  vx: -45, vy: -35, color: "var(--caramel)", r: 3 },
+    // Right edge bursts — travel right into margin
+    { x: 228, y: 95,  vx:  55, vy: -25, color: "var(--sky)",     r: 4 },
+    { x: 228, y: 145, vx:  60, vy:  15, color: "var(--rose)",    r: 3.5 },
+    { x: 228, y: 65,  vx:  50, vy: -40, color: "var(--matcha)",  r: 3 },
+    // Top edge bursts — travel upward
+    { x: 80,  y: 28,  vx: -20, vy: -65, color: "var(--caramel)", r: 4 },
+    { x: 128, y: 28,  vx:  5,  vy: -70, color: "var(--honey)",   r: 5 },
+    { x: 176, y: 28,  vx:  25, vy: -60, color: "var(--rose)",    r: 3.5 },
+    // Bottom edge bursts — travel down
+    { x: 90,  y: 212, vx: -15, vy:  55, color: "var(--sky)",     r: 3 },
+    { x: 165, y: 212, vx:  20, vy:  60, color: "var(--caramel)", r: 4 },
+  ]
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
+      {/* Squiggles along card edges */}
+      <motion.path
+        d="M28 180 C18 165 6 178 -6 163 M28 130 C14 118 2 132 -10 120 M28 80 C16 68 4 82 -8 70"
+        stroke="var(--rose)" strokeWidth="2" strokeLinecap="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.65 : 0 }}
+        transition={{ duration: 0.45 }}
+      />
+      <motion.path
+        d="M228 175 C238 160 250 174 262 160 M228 125 C240 113 252 127 264 114 M228 75 C238 63 250 77 262 64"
+        stroke="var(--caramel)" strokeWidth="1.8" strokeLinecap="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.6 : 0 }}
+        transition={{ duration: 0.4, delay: 0.08 }}
+      />
+      <motion.path
+        d="M70 28 C58 16 72 4 60 -8 M128 28 C118 14 132 2 122 -10 M186 28 C174 16 188 4 176 -8"
+        stroke="var(--honey)" strokeWidth="1.8" strokeLinecap="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.6 : 0 }}
+        transition={{ duration: 0.38, delay: 0.12 }}
+      />
+      {/* Burst particles from edges */}
+      {particles.map((p, i) => (
+        <motion.circle key={i} cx={p.x} cy={p.y} r={p.r}
+          fill={p.color}
+          animate={hovered
+            ? { cx: p.x + p.vx, cy: p.y + p.vy, opacity: [0, 0.9, 0], r: [p.r, p.r * 1.5, 0] }
+            : { cx: p.x, cy: p.y, opacity: 0, r: p.r }}
+          transition={{ duration: 0.75, delay: i * 0.04, ease: "easeOut" }}
+        />
+      ))}
+      {/* Exclamation marks in margins */}
+      {hovered && [{ x: 10, y: 60 }, { x: 246, y: 55 }, { x: 128, y: 10 }].map((pos, i) => (
+        <motion.text key={i} x={pos.x} y={pos.y}
+          fontSize="18" fill="var(--rose)" fillOpacity={0.75}
+          fontWeight="bold" textAnchor="middle"
+          initial={{ opacity: 0, y: pos.y + 14, scale: 0 }}
+          animate={{ opacity: 0.75, y: pos.y, scale: 1 }}
+          transition={{ delay: 0.18 + i * 0.1, type: "spring", stiffness: 300 }}
+        >!</motion.text>
+      ))}
+    </svg>
+  )
+}
+
+function HiveOverlay({ hovered }: { hovered: boolean }) {
+  // Behind the card (z=0). Overlay extends 28px beyond card.
+  // Warm halo ring visible at card edges + beyond. Long rays extend into margins.
+  // Card center stays readable (card bg covers interior).
+  // viewBox 0 0 256 240: card at x:28→228, y:28→212, center ~(128, 120)
+  return (
+    <div className="absolute inset-0 overflow-visible pointer-events-none">
+      {/* Warm halo — transparent center, color ring at card edges + beyond */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at 50% 50%, transparent 38%, color-mix(in srgb, var(--honey) 60%, transparent) 60%, transparent 82%)",
+          borderRadius: "50%",
+        }}
+        animate={{ opacity: hovered ? 0.8 : 0, scale: hovered ? 1.15 : 0.9 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      />
+      {/* Long rotating rays from center, extending into margins */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center overflow-visible"
+        animate={{ rotate: hovered ? 360 : 0 }}
+        transition={{ duration: 7, repeat: hovered ? Infinity : 0, ease: "linear" }}
+      >
+        <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
+          {Array.from({ length: 12 }).map((_, i) => {
+            const angle = (i * 30 * Math.PI) / 180
+            // Start rays outside card edge, extend well beyond overlay
+            const x1 = 128 + Math.cos(angle) * 72
+            const y1 = 120 + Math.sin(angle) * 68
+            const x2 = 128 + Math.cos(angle) * 140
+            const y2 = 120 + Math.sin(angle) * 130
+            return (
+              <motion.line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+                stroke="var(--honey)" strokeWidth="2" strokeLinecap="round"
+                initial={{ opacity: 0 }} animate={{ opacity: hovered ? 0.6 : 0 }}
+                transition={{ duration: 0.3, delay: i * 0.025 }}
+              />
+            )
+          })}
+        </svg>
+      </motion.div>
+      {/* Corner sparkles in the margins */}
+      {[{ x: "4%", y: "6%" }, { x: "88%", y: "4%" }, { x: "91%", y: "84%" }, { x: "3%", y: "86%" }].map((s, i) => (
+        <motion.div key={i}
+          className="absolute"
+          style={{ left: s.x, top: s.y, width: 11, height: 11 }}
+          initial={{ opacity: 0, scale: 0, rotate: 0 }}
+          animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0, rotate: hovered ? 45 : 0 }}
+          transition={{ delay: 0.2 + i * 0.08, type: "spring", stiffness: 350 }}
+        >
+          <svg width="11" height="11" viewBox="0 0 10 10" fill="none">
+            <path d="M5 0 L5 10 M0 5 L10 5 M1.5 1.5 L8.5 8.5 M8.5 1.5 L1.5 8.5"
+              stroke="var(--honey)" strokeWidth="1.6" strokeLinecap="round" strokeOpacity="0.9" />
+          </svg>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+/* ── Curved arrow between sections ── */
+function CurvedArrow({
+  color, delay = 0, flip = false, className = "",
+}: { color: string; delay?: number; flip?: boolean; className?: string }) {
+  return (
+    <div className={cn("pointer-events-none", flip && "-scale-x-100", className)} aria-hidden="true">
+      <svg width="56" height="72" viewBox="0 0 56 72" fill="none">
+        <motion.path
+          d="M 44 4 C 52 18 52 38 36 52 C 26 60 14 64 10 70"
+          stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          whileInView={{ pathLength: 1, opacity: 0.65 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ delay, duration: 0.9, ease: "easeOut" }}
+        />
+        <motion.path
+          d="M 10 70 L 6 58 M 10 70 L 22 67"
+          stroke={color} strokeWidth="2.5" strokeLinecap="round"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 0.65 }}
+          viewport={{ once: true }}
+          transition={{ delay: delay + 0.85, duration: 0.2 }}
+        />
+      </svg>
+    </div>
+  )
+}
+
+/* ── Hover-burst particle button ── */
+function ParticleButton({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const [hovered, setHovered] = React.useState(false)
+  const [particles, setParticles] = React.useState<
+    { id: number; angle: number; distance: number; color: string; size: number; dur: number }[]
+  >([])
+
+  React.useEffect(() => {
+    const colors = ["var(--matcha)", "var(--honey)", "var(--rose)", "var(--caramel)", "#8BB8E0"]
+    setParticles(
+      Array.from({ length: 18 }, (_, i) => ({
+        id: i,
+        angle: (360 / 18) * i + (Math.random() * 18 - 9),
+        distance: 38 + Math.random() * 52,
+        color: colors[i % colors.length],
+        size: Math.random() * 5 + 4,
+        dur: 0.35 + Math.random() * 0.25,
+      }))
+    )
+  }, [])
+
+  return (
+    <div
+      className={cn("relative inline-flex", className)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {particles.map((p) => {
+        const rad = (p.angle * Math.PI) / 180
+        const tx = Math.cos(rad) * p.distance
+        const ty = Math.sin(rad) * p.distance
+        return (
+          <motion.div
+            key={p.id}
+            className="pointer-events-none absolute rounded-full"
+            style={{
+              width: p.size, height: p.size, backgroundColor: p.color,
+              top: "50%", left: "50%",
+              marginTop: -p.size / 2, marginLeft: -p.size / 2,
+              zIndex: hovered ? 20 : -1,
+            }}
+            animate={
+              hovered
+                ? { x: tx, y: ty, scale: [0, 1.3, 1], opacity: [0, 1, 0.85] }
+                : { x: 0,  y: 0,  scale: 0,             opacity: 0 }
+            }
+            transition={
+              hovered
+                ? { duration: p.dur, ease: [0.2, 0, 0.4, 1] }
+                : { duration: 0.28, ease: [0.6, 0, 1, 0.6] }
+            }
+          />
+        )
+      })}
+      {children}
     </div>
   )
 }
@@ -885,11 +1465,14 @@ function FeaturedCard({ opportunity }: { opportunity: (typeof mockOpportunities)
 function HeroWaitlistForm() {
   const [email, setEmail] = useState("")
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [burst, setBurst] = React.useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
     haptic("medium")
+    setBurst(true)
+    setTimeout(() => setBurst(false), 700)
     setStatus("loading")
     try {
       const res = await fetch("/api/waitlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
@@ -905,18 +1488,140 @@ function HeroWaitlistForm() {
     )
   }
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
-      <Input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 rounded-full border-border/60 bg-card/80 text-sm h-11" disabled={status === "loading"} />
-      <ScaleOnTap>
-        <Button type="submit" disabled={status === "loading" || !email} className="rounded-full bg-espresso text-cream hover:bg-espresso/85 font-semibold text-sm px-6 h-11">
-          {status === "loading" ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-cream/20 border-t-cream" /> : "Join waitlist"}
-        </Button>
-      </ScaleOnTap>
+    <>
+      <style>{`
+        @keyframes gradient-flow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .waitlist-btn-active {
+          background: linear-gradient(135deg, var(--matcha), var(--honey), var(--caramel), var(--rose), var(--sky), var(--matcha));
+          background-size: 300% 300%;
+          animation: gradient-flow 2s ease infinite;
+        }
+        .waitlist-btn-idle {
+          background: var(--matcha);
+        }
+      `}</style>
+      <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
+        <Input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 rounded-full border-border/60 bg-card/80 text-sm h-11" disabled={status === "loading"} />
+        <WaitlistBurstButton burst={burst}>
+          <motion.div
+            whileTap={{ scale: 0.80, rotate: [-5, 5, -3, 0] }}
+            transition={{ type: "spring", stiffness: 600, damping: 10 }}
+          >
+            <Button
+              type="submit"
+              disabled={status === "loading" || !email}
+              className={cn(
+                "rounded-full font-semibold text-sm px-6 h-11 text-espresso border-0 shadow-md transition-all duration-500",
+                email ? "waitlist-btn-active" : "waitlist-btn-idle"
+              )}
+            >
+              {status === "loading"
+                ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-espresso/20 border-t-espresso" />
+                : "Join waitlist ✦"}
+            </Button>
+          </motion.div>
+        </WaitlistBurstButton>
+      </form>
+    </>
+  )
+}
+
+/* ── Final CTA Waitlist Form ── */
+function FinalCTAForm() {
+  const [email, setEmail] = useState("")
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [burst, setBurst] = React.useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+    haptic("medium")
+    setBurst(true)
+    setTimeout(() => setBurst(false), 700)
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/waitlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
+      if (res.ok) { haptic("success"); setStatus("success"); setEmail("") } else { haptic("error"); setStatus("error") }
+    } catch { haptic("error"); setStatus("error") }
+  }
+
+  if (status === "success") {
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-cream/70">
+        <CheckCircle2 className="h-4 w-4 text-matcha" /> You&apos;re on the list! We&apos;ll be in touch.
+      </motion.div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-sm">
+      <Input
+        type="email"
+        placeholder="your@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="flex-1 rounded-full border-cream/20 bg-cream/10 text-cream placeholder:text-cream/35 text-sm h-11 focus-visible:ring-matcha/50"
+        disabled={status === "loading"}
+      />
+      <WaitlistBurstButton burst={burst}>
+        <motion.div whileTap={{ scale: 0.80, rotate: [-5, 5, -3, 0] }} transition={{ type: "spring", stiffness: 600, damping: 10 }}>
+          <Button
+            type="submit"
+            disabled={status === "loading" || !email}
+            className="rounded-full font-semibold text-sm px-6 h-11 text-espresso border-0 bg-matcha hover:bg-matcha-dark shadow-md"
+          >
+            {status === "loading"
+              ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-espresso/20 border-t-espresso" />
+              : "Join waitlist ✦"}
+          </Button>
+        </motion.div>
+      </WaitlistBurstButton>
     </form>
   )
 }
 
-/* ── Feedback Form ── */
+/* ── Waitlist click burst — particles generated client-side only to avoid hydration mismatch ── */
+function WaitlistBurstButton({ children, burst }: { children: React.ReactNode; burst: boolean }) {
+  const [particles, setParticles] = React.useState<
+    { id: number; angle: number; distance: number; color: string; size: number }[]
+  >([])
+
+  React.useEffect(() => {
+    setParticles(Array.from({ length: 16 }, (_, i) => ({
+      id: i,
+      angle: (360 / 16) * i + (Math.random() * 14 - 7),
+      distance: 28 + Math.random() * 38,
+      color: ["var(--matcha)", "var(--honey)", "var(--rose)", "var(--caramel)", "var(--sky)"][i % 5],
+      size: 3 + Math.random() * 4,
+    })))
+  }, [])
+
+  return (
+    <div className="relative inline-flex">
+      {particles.map(p => {
+        const rad = (p.angle * Math.PI) / 180
+        return (
+          <motion.div
+            key={p.id}
+            className="pointer-events-none absolute rounded-full"
+            style={{ width: p.size, height: p.size, backgroundColor: p.color, top: "50%", left: "50%", marginTop: -p.size / 2, marginLeft: -p.size / 2, zIndex: burst ? 20 : -1 }}
+            animate={burst
+              ? { x: Math.cos(rad) * p.distance, y: Math.sin(rad) * p.distance, scale: [0, 1.6, 0], opacity: [0, 1, 0] }
+              : { x: 0, y: 0, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+          />
+        )
+      })}
+      {children}
+    </div>
+  )
+}
+
+/* ── Feedback Form (used inside MailFeedback modal) ── */
 function FeedbackForm() {
   const [message, setMessage] = useState("")
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
@@ -931,38 +1636,189 @@ function FeedbackForm() {
     } catch { setStatus("error") }
   }
 
+  if (status === "success") {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4 overflow-hidden">
+        <motion.div
+          initial={{ x: 0, y: 0, rotate: -10, opacity: 1, scale: 1 }}
+          animate={{ x: 80, y: -60, rotate: 30, opacity: 0, scale: 0.6 }}
+          transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
+          className="text-3xl select-none"
+        >
+          ✉️
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+          className="flex flex-col items-center gap-1"
+        >
+          <p className="font-semibold text-sm text-espresso">Message sent!</p>
+          <p className="font-serif text-xs italic text-espresso/50">We read every single one. ✦</p>
+        </motion.div>
+      </div>
+    )
+  }
+
   return (
-    <Card className={cn(cardClass, "overflow-hidden border-l-[3px] border-l-honey/50")}>
-      <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <Send className="h-4 w-4 text-honey" />
-          <h3 className="text-sm font-semibold text-espresso">Share a thought</h3>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <p className="font-serif text-xs text-espresso/50 italic">
+        Have an idea, a question, or something that bugged you? We read every message.
+      </p>
+      <Textarea
+        placeholder="What would make Something better for you?"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        className="rounded-xl border-border/60 bg-latte/30 font-serif text-sm min-h-[100px] resize-none"
+        disabled={status === "loading"}
+      />
+      <ScaleOnTap className="self-end">
+        <Button type="submit" disabled={status === "loading" || !message.trim()} className="rounded-full bg-honey text-espresso hover:bg-honey/85 font-semibold text-sm px-5">
+          {status === "loading" ? "Sending..." : "Send ✦"}
+        </Button>
+      </ScaleOnTap>
+      <AnimatePresence>
+        {status === "error" && (
+          <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="font-serif text-xs italic text-destructive">
+            Something went wrong. Try again?
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </form>
+  )
+}
+
+/* ── Mail Feedback Component ── */
+function MailFeedback() {
+  const [isHovered, setIsHovered] = React.useState(false)
+  const [modalOpen, setModalOpen] = React.useState(false)
+  const [isTouch, setIsTouch] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: false, amount: 0.65 })
+
+  React.useEffect(() => {
+    setIsTouch(window.matchMedia("(pointer: coarse)").matches)
+  }, [])
+
+  // Desktop: hover only. Mobile/touch: scroll into view.
+  const isEnvelopeOpen = modalOpen || isHovered || (isTouch && isInView)
+
+  return (
+    <div ref={ref} className="flex flex-col items-center justify-center gap-4">
+      <motion.div
+        className="cursor-pointer select-none"
+        onHoverStart={() => !isTouch && setIsHovered(true)}
+        onHoverEnd={() => !isTouch && !modalOpen && setIsHovered(false)}
+        onClick={() => { setIsHovered(true); setModalOpen(true) }}
+        whileTap={{ scale: 0.96 }}
+        role="button"
+        aria-label="Open feedback form"
+      >
+        {/* Envelope */}
+        <div className="relative" style={{ width: 260, height: 195 }}>
+          <svg width="260" height="195" viewBox="0 0 260 195" fill="none">
+            {/* Drop shadow */}
+            <rect x="14" y="98" width="232" height="90" rx="9" fill="var(--espresso)" fillOpacity="0.05" />
+
+            {/* Paper — starts fully inside envelope (top at y=100, below envelope edge at y=92) */}
+            {/* Only visible when open (slides up out of envelope) */}
+            <motion.g
+              animate={{ y: isEnvelopeOpen ? -82 : 0 }}
+              transition={{ type: "spring", stiffness: 160, damping: 20 }}
+            >
+              <rect x="60" y="100" width="140" height="130" rx="5" fill="white" stroke="var(--honey)" strokeWidth="1.5" />
+              <line x1="78" y1="125" x2="182" y2="125" stroke="var(--espresso)" strokeOpacity="0.11" strokeWidth="1.2" />
+              <line x1="78" y1="140" x2="182" y2="140" stroke="var(--espresso)" strokeOpacity="0.11" strokeWidth="1.2" />
+              <line x1="78" y1="155" x2="162" y2="155" stroke="var(--espresso)" strokeOpacity="0.08" strokeWidth="1.2" />
+              <motion.text x="130" y="178" fontSize="13" textAnchor="middle"
+                animate={{ opacity: isEnvelopeOpen ? 0.5 : 0 }}
+                transition={{ delay: isEnvelopeOpen ? 0.3 : 0 }}>
+                ✦
+              </motion.text>
+            </motion.g>
+
+            {/* Envelope body — drawn on top of paper to hide it when closed */}
+            <rect x="12" y="92" width="236" height="98" rx="9" fill="var(--latte)" stroke="var(--caramel)" strokeWidth="1.8" fillOpacity="0.96" />
+
+            {/* Fold lines */}
+            <line x1="12" y1="92" x2="130" y2="158" stroke="var(--caramel)" strokeWidth="1.2" strokeOpacity="0.28" />
+            <line x1="248" y1="92" x2="130" y2="158" stroke="var(--caramel)" strokeWidth="1.2" strokeOpacity="0.28" />
+
+            {/* Flap — morphs from closed (V pointing down into envelope) to open (V pointing up) */}
+            {/* Becomes transparent when open so paper is fully visible */}
+            <motion.path
+              fill="var(--latte)"
+              stroke="var(--caramel)"
+              strokeWidth="1.8"
+              animate={{
+                d: isEnvelopeOpen
+                  ? "M 12 92 L 130 26 L 248 92"
+                  : "M 12 92 L 130 158 L 248 92",
+                fillOpacity: isEnvelopeOpen ? 0 : 0.95,
+              }}
+              transition={{ type: "spring", stiffness: 130, damping: 20 }}
+            />
+          </svg>
         </div>
-        <p className="font-serif text-xs text-espresso/50 mb-4 italic">
-          Have an idea, a question, or something that bugged you? We read every message.
-        </p>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <Textarea
-            placeholder="What would make Something better for you?"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="rounded-xl border-border/60 bg-latte/30 font-serif text-sm min-h-[80px] resize-none"
-            disabled={status === "loading" || status === "success"}
-          />
-          <ScaleOnTap className="self-end">
-            <Button type="submit" disabled={status === "loading" || status === "success" || !message.trim()} className="rounded-full bg-honey text-espresso hover:bg-honey/85 font-semibold text-sm px-5">
-              {status === "loading" ? "Sending..." : status === "success" ? "Sent! Thank you." : "Send"}
-            </Button>
-          </ScaleOnTap>
-        </form>
-        <AnimatePresence>
-          {status === "error" && (
-            <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="font-serif text-xs italic text-destructive mt-2">
-              Something went wrong. Try again?
-            </motion.p>
-          )}
+
+        {/* Label */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={isEnvelopeOpen ? "open" : "closed"}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            className="text-center font-serif text-sm italic text-espresso/50 mt-1"
+          >
+            {isEnvelopeOpen ? "Click to share a thought ✦" : "Have something to say?"}
+          </motion.p>
         </AnimatePresence>
-      </CardContent>
-    </Card>
+      </motion.div>
+
+      {/* Feedback Modal */}
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => { setModalOpen(false); setIsHovered(false) }}
+          >
+            <div className="absolute inset-0 bg-espresso/20 backdrop-blur-sm" />
+            <motion.div
+              className="relative z-10 w-full max-w-md"
+              initial={{ scale: 0.88, y: 24, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.88, y: 24, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Card className={cn(cardClass, "overflow-hidden border-l-[3px] border-l-honey/50 shadow-xl")}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Send className="h-4 w-4 text-honey" />
+                      <h3 className="text-sm font-semibold text-espresso">Share a thought</h3>
+                    </div>
+                    <motion.button
+                      onClick={() => { setModalOpen(false); setIsHovered(false) }}
+                      className="text-espresso/40 hover:text-espresso/70 transition-colors"
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 2 L14 14 M14 2 L2 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </motion.button>
+                  </div>
+                  <FeedbackForm />
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
