@@ -50,7 +50,7 @@ function FloatDot({ color, className = "" }: { color: string; className?: string
 }
 
 export default function HomePage() {
-  const featured = mockOpportunities.filter((op) => op.featured).slice(0, 4)
+  const featured = mockOpportunities.filter((op) => op.featured)
 
   return (
     <div className="min-h-screen bg-background">
@@ -548,34 +548,25 @@ export default function HomePage() {
             {/* Ghost cards peeking from left — desktop only */}
             <div className="hidden lg:block pointer-events-none absolute -left-2 top-0 bottom-0 w-[130px] z-10">
               <div className="h-full flex flex-col gap-4 opacity-35" style={{ filter: "blur(2.5px)", transform: "scale(0.95)", transformOrigin: "right center" }}>
-                {mockOpportunities.filter(op => !op.featured).slice(0, 2).map(op => (
-                  <div key={op.id} className="flex-1 min-h-0"><FeaturedCard opportunity={op} /></div>
+                {mockOpportunities.filter(op => !op.featured).slice(0, 2).map((op, i) => (
+                  <div key={op.id} className="flex-1 min-h-0"><FeaturedCard opportunity={op} index={i} /></div>
                 ))}
               </div>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background" />
             </div>
 
-            {/* Main 2×2 grid */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mx-auto max-w-sm sm:max-w-2xl">
-              {featured.map((op, i) => (
-                <motion.div
-                  key={op.id}
-                  className="h-full"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.4 }}
-                >
-                  <FeaturedCard opportunity={op} />
-                </motion.div>
+            {/* Main grid */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mx-auto max-w-sm sm:max-w-3xl">
+              {featured.slice(0, 3).map((op, i) => (
+                <FeaturedCard key={op.id} opportunity={op} index={i} />
               ))}
             </div>
 
             {/* Ghost cards peeking from right — desktop only */}
             <div className="hidden lg:block pointer-events-none absolute -right-2 top-0 bottom-0 w-[130px] z-10">
               <div className="h-full flex flex-col gap-4 opacity-35" style={{ filter: "blur(2.5px)", transform: "scale(0.95)", transformOrigin: "left center" }}>
-                {mockOpportunities.filter(op => !op.featured).slice(2, 4).map(op => (
-                  <div key={op.id} className="flex-1 min-h-0"><FeaturedCard opportunity={op} /></div>
+                {mockOpportunities.filter(op => !op.featured).slice(2, 4).map((op, i) => (
+                  <div key={op.id} className="flex-1 min-h-0"><FeaturedCard opportunity={op} index={i} /></div>
                 ))}
               </div>
               <div className="absolute inset-0 bg-gradient-to-l from-transparent to-background" />
@@ -611,12 +602,13 @@ export default function HomePage() {
             </div>
           </SlideUp>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <PartnerCard
               org="Nature Vancouver"
               program="New Brighton Park Restoration"
               abbr="NV"
-              iconBg="bg-matcha/20 text-matcha-dark"
+              logoSrc="/images/nature_vancouver.png"
+              iconBg="bg-white"
               border="border-matcha/25"
               effect="nature"
             />
@@ -624,7 +616,8 @@ export default function HomePage() {
               org="DIVERSECity"
               program="Youth for People & the Planet"
               abbr="DC"
-              iconBg="bg-honey/20 text-espresso/80"
+              logoSrc="/images/DIVERSECity.png"
+              iconBg="bg-white"
               border="border-honey/25"
               effect="city"
             />
@@ -632,7 +625,8 @@ export default function HomePage() {
               org="Apathy is Boring"
               program="RISE"
               abbr="AB"
-              iconBg="bg-caramel/20 text-espresso/70"
+              logoSrc="/images/AisB.jpg"
+              iconBg="bg-white"
               border="border-caramel/25"
               effect="apathy"
             />
@@ -640,9 +634,19 @@ export default function HomePage() {
               org="CityHive"
               program="Youth Civic Action"
               abbr="CH"
-              iconBg="bg-rose/15 text-rose"
+              logoSrc="/images/CityHive.png"
+              iconBg="bg-white"
               border="border-rose/20"
               effect="hive"
+            />
+            <PartnerCard
+              org="VNFN"
+              program="Food Security and Justice"
+              abbr="VN"
+              logoSrc="/images/VNFN-2025Logo.png"
+              iconBg="bg-white"
+              border="border-honey/30"
+              effect="food"
             />
           </div>
         </div>
@@ -1020,10 +1024,10 @@ function WaitlistSection() {
 
 /* ── Partner Card with unique hover effects ── */
 function PartnerCard({
-  org, program, abbr, iconBg, border, effect,
+  org, program, abbr, logoSrc, iconBg, border, effect,
 }: {
-  org: string; program: string; abbr: string; iconBg: string; border: string;
-  effect: "nature" | "city" | "apathy" | "hive"
+  org: string; program: string; abbr: string; logoSrc?: string; iconBg: string; border: string;
+  effect: "nature" | "city" | "apathy" | "hive" | "food"
 }) {
   const [hovered, setHovered] = React.useState(false)
   const [isMobile, setIsMobile] = React.useState(false)
@@ -1047,11 +1051,11 @@ function PartnerCard({
         onMouseEnter={() => !isMobile && setHovered(true)}
         onMouseLeave={() => !isMobile && setHovered(false)}
       >
-        {/* LAYER 0: behind-card overlay — city buildings, hive glow */}
-        {(effect === "city" || effect === "hive") && (
+        {/* LAYER 0: behind-card overlay — city buildings, food items */}
+        {(effect === "city" || effect === "food") && (
           <div className="absolute pointer-events-none" style={{ inset: -28, zIndex: 0, overflow: "visible" }}>
             {effect === "city" && <CityOverlay hovered={showEffect} />}
-            {effect === "hive" && <HiveOverlay hovered={showEffect} />}
+            {effect === "food" && <FoodOverlay hovered={showEffect} />}
           </div>
         )}
 
@@ -1063,8 +1067,12 @@ function PartnerCard({
         >
           <Card className={cn(cardClass, "h-full border-2", border)}>
             <CardContent className="relative z-10 p-5 flex flex-col items-center text-center gap-3">
-              <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl font-bold text-sm", iconBg)}>
-                {abbr}
+              <div className={cn("flex h-14 w-14 items-center justify-center rounded-xl font-bold text-sm overflow-hidden", iconBg)}>
+                {logoSrc ? (
+                  <Image src={logoSrc} alt={org} width={56} height={56} className="object-contain w-full h-full p-1" />
+                ) : (
+                  abbr
+                )}
               </div>
               <div>
                 <h3 className="text-base font-bold text-espresso">{org}</h3>
@@ -1074,11 +1082,12 @@ function PartnerCard({
           </Card>
         </motion.div>
 
-        {/* LAYER 2: around-card overlay — nature vines, apathy particles */}
-        {(effect === "nature" || effect === "apathy") && (
+        {/* LAYER 2: around-card overlay — nature vines, apathy bursts, hive confetti */}
+        {(effect === "nature" || effect === "apathy" || effect === "hive") && (
           <div className="absolute pointer-events-none" style={{ inset: -28, zIndex: 2, overflow: "visible" }}>
             {effect === "nature" && <NatureOverlay hovered={showEffect} />}
             {effect === "apathy" && <ApathyOverlay hovered={showEffect} />}
+            {effect === "hive"   && <HiveOverlay   hovered={showEffect} />}
           </div>
         )}
       </div>
@@ -1087,49 +1096,71 @@ function PartnerCard({
 }
 
 function NatureOverlay({ hovered }: { hovered: boolean }) {
-  // Overlay div has inset: -28 — this SVG covers card + 28px margin on all sides.
-  // Vines stay in the left margin (x ≤ 28) and right margin (x ≥ card-right) — never over card text.
-  // viewBox 0 0 256 240: card occupies roughly x:28→228, y:28→212
+  // Vines grow around all 4 sides of the card frame, staying in the ~28px margin
   return (
     <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
-      {/* Left vine — travels up the left margin */}
+      {/* Bottom edge vine — left to right along card bottom */}
       <motion.path
-        d="M28 212 C18 188 24 162 10 136 C-2 112 14 88 6 62 C0 42 14 20 6 2"
-        stroke="var(--matcha)" strokeWidth="2.5" strokeLinecap="round" fill="none"
+        d="M28 212 C60 222 100 206 140 218 C170 226 200 208 228 214"
+        stroke="var(--matcha)" strokeWidth="2.2" strokeLinecap="round" fill="none"
         initial={{ pathLength: 0 }} animate={{ pathLength: hovered ? 1 : 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       />
-      {/* Right vine */}
+      {/* Left edge vine — bottom to top */}
       <motion.path
-        d="M228 212 C238 186 232 160 246 134 C258 110 242 86 250 60 C256 40 242 18 250 2"
-        stroke="var(--matcha)" strokeWidth="2" strokeLinecap="round" fill="none"
+        d="M28 212 C16 188 22 162 10 136 C0 112 14 88 8 60 C4 40 16 22 10 4"
+        stroke="var(--matcha)" strokeWidth="2.2" strokeLinecap="round" fill="none"
         initial={{ pathLength: 0 }} animate={{ pathLength: hovered ? 1 : 0 }}
-        transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
+        transition={{ duration: 0.75, delay: 0.15, ease: "easeOut" }}
       />
-      {/* Leaves left */}
-      {[{ cx: 14, cy: 178, rx: 11, ry: 5, r: -28 }, { cx: 22, cy: 144, rx: 10, ry: 4.5, r: 22 }, { cx: 8, cy: 110, rx: 9, ry: 4, r: -18 }, { cx: 18, cy: 78, rx: 8, ry: 3.5, r: 26 }].map((l, i) => (
+      {/* Top edge vine — left to right */}
+      <motion.path
+        d="M10 28 C50 18 90 34 130 20 C160 10 196 28 228 20"
+        stroke="var(--matcha)" strokeWidth="1.8" strokeLinecap="round" fill="none"
+        initial={{ pathLength: 0 }} animate={{ pathLength: hovered ? 1 : 0 }}
+        transition={{ duration: 0.65, delay: 0.35, ease: "easeOut" }}
+      />
+      {/* Right edge vine — top to bottom */}
+      <motion.path
+        d="M228 20 C240 44 234 70 246 96 C256 118 240 144 248 170 C254 190 242 208 228 214"
+        stroke="var(--matcha)" strokeWidth="1.8" strokeLinecap="round" fill="none"
+        initial={{ pathLength: 0 }} animate={{ pathLength: hovered ? 1 : 0 }}
+        transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}
+      />
+      {/* Leaves sprouting outward from all sides */}
+      {[
+        // Left side leaves (pointing left, outside card)
+        { cx: 12, cy: 174, rx: 10, ry: 4.5, r: -35 },
+        { cx: 6,  cy: 136, rx: 9,  ry: 4,   r: 25  },
+        { cx: 14, cy: 96,  rx: 8,  ry: 3.5, r: -28 },
+        { cx: 8,  cy: 54,  rx: 8,  ry: 3.5, r: 30  },
+        // Right side leaves (pointing right)
+        { cx: 244, cy: 60,  rx: 9,  ry: 4,   r: -28 },
+        { cx: 252, cy: 100, rx: 10, ry: 4.5, r: 30  },
+        { cx: 242, cy: 148, rx: 9,  ry: 4,   r: -25 },
+        { cx: 248, cy: 192, rx: 8,  ry: 3.5, r: 28  },
+        // Bottom leaves (pointing down)
+        { cx: 68,  cy: 224, rx: 9,  ry: 4,   r: 85  },
+        { cx: 148, cy: 228, rx: 10, ry: 4,   r: -88 },
+        { cx: 208, cy: 222, rx: 8,  ry: 3.5, r: 82  },
+        // Top leaves (pointing up)
+        { cx: 52,  cy: 14,  rx: 8,  ry: 3.5, r: -88 },
+        { cx: 128, cy: 8,   rx: 9,  ry: 4,   r: 90  },
+        { cx: 196, cy: 12,  rx: 8,  ry: 3.5, r: -85 },
+      ].map((l, i) => (
         <motion.ellipse key={i} cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry}
           fill="var(--matcha)" fillOpacity={0.6}
           style={{ rotate: `${l.r}deg` }}
           initial={{ scale: 0 }} animate={{ scale: hovered ? 1 : 0 }}
-          transition={{ delay: 0.2 + i * 0.1, duration: 0.3, type: "spring", stiffness: 300 }}
+          transition={{ delay: 0.2 + i * 0.06, duration: 0.28, type: "spring", stiffness: 320 }}
         />
       ))}
-      {/* Leaves right */}
-      {[{ cx: 242, cy: 174, rx: 10, ry: 4.5, r: 26 }, { cx: 234, cy: 140, rx: 9, ry: 4, r: -22 }, { cx: 248, cy: 106, rx: 8, ry: 3.5, r: 28 }, { cx: 240, cy: 74, rx: 7, ry: 3, r: -18 }].map((l, i) => (
-        <motion.ellipse key={i} cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry}
-          fill="var(--matcha)" fillOpacity={0.45}
-          style={{ rotate: `${l.r}deg` }}
+      {/* Honey flowers at corners */}
+      {[{ cx: 24, cy: 222 }, { cx: 8, cy: 24 }, { cx: 244, cy: 18 }, { cx: 250, cy: 218 }].map((f, i) => (
+        <motion.circle key={i} cx={f.cx} cy={f.cy} r={4}
+          fill="var(--honey)" fillOpacity={0.8}
           initial={{ scale: 0 }} animate={{ scale: hovered ? 1 : 0 }}
-          transition={{ delay: 0.3 + i * 0.1, duration: 0.3, type: "spring", stiffness: 300 }}
-        />
-      ))}
-      {/* Honey flowers */}
-      {[{ cx: 20, cy: 160, r: 4 }, { cx: 10, cy: 94, r: 3.5 }, { cx: 246, cy: 156, r: 4 }, { cx: 238, cy: 90, r: 3.5 }].map((f, i) => (
-        <motion.circle key={i} cx={f.cx} cy={f.cy} r={f.r}
-          fill="var(--honey)" fillOpacity={0.75}
-          initial={{ scale: 0 }} animate={{ scale: hovered ? 1 : 0 }}
-          transition={{ delay: 0.4 + i * 0.08, duration: 0.25, type: "spring", stiffness: 400 }}
+          transition={{ delay: 0.55 + i * 0.08, duration: 0.25, type: "spring", stiffness: 400 }}
         />
       ))}
     </svg>
@@ -1137,35 +1168,38 @@ function NatureOverlay({ hovered }: { hovered: boolean }) {
 }
 
 function CityOverlay({ hovered }: { hovered: boolean }) {
-  // Overlay div has inset: -28. Card is roughly at y:28→212, x:28→228 in this coord system.
-  // Buildings rise from the bottom (y=240). Tallest ones (h>184) peek above card top (y=28).
+  // Buildings hang DOWN from the top of the overlay area (visible above the card top).
+  // Card top is at y≈28. Buildings are positioned at the top and grow downward — tallest
+  // ones descend below card top and are hidden by card background.
+  // Each building has a slight skewX for an angled city feel.
   const buildings = [
-    { x: 0,   w: 30, h: 155, color: "var(--honey)",   delay: 0.00 },
-    { x: 32,  w: 24, h: 210, color: "var(--caramel)", delay: 0.06 }, // peeks above card
-    { x: 58,  w: 28, h: 138, color: "var(--sky)",     delay: 0.03 },
-    { x: 90,  w: 22, h: 220, color: "var(--honey)",   delay: 0.10 }, // peeks above card
-    { x: 116, w: 26, h: 168, color: "var(--caramel)", delay: 0.04 },
-    { x: 146, w: 24, h: 198, color: "var(--sky)",     delay: 0.08 }, // peeks above card
-    { x: 174, w: 28, h: 148, color: "var(--honey)",   delay: 0.02 },
-    { x: 206, w: 22, h: 185, color: "var(--caramel)", delay: 0.07 },
-    { x: 230, w: 26, h: 128, color: "var(--sky)",     delay: 0.05 },
+    { x: 8,   w: 28, h: 70,  color: "var(--honey)",   delay: 0.00, skew: -3 },
+    { x: 40,  w: 22, h: 90,  color: "var(--caramel)", delay: 0.06, skew:  4 },
+    { x: 66,  w: 30, h: 60,  color: "var(--sky)",     delay: 0.03, skew: -2 },
+    { x: 100, w: 24, h: 100, color: "var(--honey)",   delay: 0.10, skew:  5 },
+    { x: 128, w: 26, h: 75,  color: "var(--caramel)", delay: 0.04, skew: -4 },
+    { x: 158, w: 22, h: 88,  color: "var(--sky)",     delay: 0.08, skew:  3 },
+    { x: 184, w: 26, h: 65,  color: "var(--honey)",   delay: 0.02, skew: -3 },
+    { x: 214, w: 20, h: 82,  color: "var(--caramel)", delay: 0.07, skew:  4 },
   ]
   return (
     <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
       {buildings.map((b, i) => (
-        <g key={i}>
+        <g key={i} style={{ transform: `skewX(${b.skew}deg)`, transformOrigin: `${b.x + b.w / 2}px 0px` }}>
+          {/* Building body — anchored at y=0, grows downward */}
           <motion.rect
-            x={b.x} y={240 - b.h} width={b.w} height={b.h}
-            fill={b.color} fillOpacity={0.18}
-            style={{ transformOrigin: `${b.x + b.w / 2}px 240px` }}
+            x={b.x} y={0} width={b.w} height={b.h}
+            fill={b.color} fillOpacity={0.22}
+            style={{ transformOrigin: `${b.x + b.w / 2}px 0px` }}
             initial={{ scaleY: 0 }}
             animate={{ scaleY: hovered ? 1 : 0 }}
-            transition={{ duration: 0.55, delay: b.delay, ease: [0.34, 1.56, 0.64, 1] }}
+            transition={{ duration: 0.5, delay: b.delay, ease: [0.34, 1.56, 0.64, 1] }}
           />
-          {[0, 1, 2, 3].map(row => (
+          {/* Windows */}
+          {[0, 1, 2].map(row => (
             <motion.rect key={row}
-              x={b.x + 5} y={240 - b.h + 14 + row * 22} width={b.w - 12} height={8}
-              fill={b.color} fillOpacity={0.55}
+              x={b.x + 4} y={10 + row * 20} width={b.w - 10} height={8}
+              fill={b.color} fillOpacity={0.6}
               initial={{ opacity: 0 }}
               animate={{ opacity: hovered ? 1 : 0 }}
               transition={{ delay: b.delay + 0.28 + row * 0.05, duration: 0.2 }}
@@ -1178,131 +1212,187 @@ function CityOverlay({ hovered }: { hovered: boolean }) {
 }
 
 function ApathyOverlay({ hovered }: { hovered: boolean }) {
-  // Overlay div has inset: -28. Card occupies x:28→228, y:28→212 in this coord system.
-  // Particles burst FROM card edges outward into the margin area.
-  // Squiggles trace along card edges and spill outside.
+  // Around layer (z=2, inset=-28). Card at x:28→228, y:28→212 in viewBox 0 0 256 240.
+  // ① Colorful squiggly vines animate INSIDE the card (over card, low opacity).
+  // ② Particles fly out from card edges into the margins.
   const particles = [
-    // Left edge bursts — travel left into margin
-    { x: 28,  y: 100, vx: -55, vy: -20, color: "var(--rose)",    r: 4.5 },
-    { x: 28,  y: 140, vx: -60, vy:  10, color: "var(--honey)",   r: 3.5 },
-    { x: 28,  y: 70,  vx: -45, vy: -35, color: "var(--caramel)", r: 3 },
-    // Right edge bursts — travel right into margin
-    { x: 228, y: 95,  vx:  55, vy: -25, color: "var(--sky)",     r: 4 },
-    { x: 228, y: 145, vx:  60, vy:  15, color: "var(--rose)",    r: 3.5 },
-    { x: 228, y: 65,  vx:  50, vy: -40, color: "var(--matcha)",  r: 3 },
-    // Top edge bursts — travel upward
-    { x: 80,  y: 28,  vx: -20, vy: -65, color: "var(--caramel)", r: 4 },
-    { x: 128, y: 28,  vx:  5,  vy: -70, color: "var(--honey)",   r: 5 },
-    { x: 176, y: 28,  vx:  25, vy: -60, color: "var(--rose)",    r: 3.5 },
-    // Bottom edge bursts — travel down
-    { x: 90,  y: 212, vx: -15, vy:  55, color: "var(--sky)",     r: 3 },
-    { x: 165, y: 212, vx:  20, vy:  60, color: "var(--caramel)", r: 4 },
+    { x: 28,  y: 75,  vx: -62, vy: -18, color: "var(--rose)",    r: 5   },
+    { x: 28,  y: 128, vx: -55, vy:  20, color: "var(--honey)",   r: 4   },
+    { x: 28,  y: 178, vx: -50, vy: -35, color: "var(--sky)",     r: 3.5 },
+    { x: 228, y: 72,  vx:  60, vy: -22, color: "var(--caramel)", r: 4.5 },
+    { x: 228, y: 138, vx:  65, vy:  15, color: "var(--rose)",    r: 3.5 },
+    { x: 228, y: 182, vx:  52, vy: -12, color: "var(--matcha)",  r: 4   },
+    { x: 85,  y: 28,  vx: -20, vy: -72, color: "var(--honey)",   r: 4.5 },
+    { x: 128, y: 28,  vx:   5, vy: -68, color: "var(--rose)",    r: 5   },
+    { x: 175, y: 28,  vx:  28, vy: -65, color: "var(--sky)",     r: 3.5 },
+    { x: 78,  y: 212, vx: -14, vy:  58, color: "var(--caramel)", r: 4   },
+    { x: 148, y: 212, vx:  18, vy:  65, color: "var(--honey)",   r: 3.5 },
+    { x: 205, y: 212, vx:  50, vy:  40, color: "var(--rose)",    r: 4   },
   ]
   return (
     <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
-      {/* Squiggles along card edges */}
+      {/* ── Squiggly vines INSIDE the card (x:40-216, y:60-195) ── */}
+      {/* Vine 1 — rose, upper half */}
       <motion.path
-        d="M28 180 C18 165 6 178 -6 163 M28 130 C14 118 2 132 -10 120 M28 80 C16 68 4 82 -8 70"
-        stroke="var(--rose)" strokeWidth="2" strokeLinecap="round"
+        d="M48 78 C68 62 88 94 108 72 C128 50 148 86 168 64 C188 44 208 78 218 60"
+        stroke="var(--rose)" strokeWidth="2" strokeLinecap="round" fill="none"
         initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.65 : 0 }}
-        transition={{ duration: 0.45 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.28 : 0 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
       />
+      {/* Vine 2 — honey, mid */}
       <motion.path
-        d="M228 175 C238 160 250 174 262 160 M228 125 C240 113 252 127 264 114 M228 75 C238 63 250 77 262 64"
-        stroke="var(--caramel)" strokeWidth="1.8" strokeLinecap="round"
+        d="M40 118 C65 100 85 138 110 114 C135 90 155 132 182 108 C205 88 218 122 228 102"
+        stroke="var(--honey)" strokeWidth="2.2" strokeLinecap="round" fill="none"
         initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.6 : 0 }}
-        transition={{ duration: 0.4, delay: 0.08 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.32 : 0 }}
+        transition={{ duration: 0.6, delay: 0.08, ease: "easeOut" }}
       />
+      {/* Vine 3 — sky, lower mid */}
       <motion.path
-        d="M70 28 C58 16 72 4 60 -8 M128 28 C118 14 132 2 122 -10 M186 28 C174 16 188 4 176 -8"
-        stroke="var(--honey)" strokeWidth="1.8" strokeLinecap="round"
+        d="M50 155 C72 136 94 170 116 148 C138 126 160 164 184 142 C202 124 216 158 222 138"
+        stroke="var(--sky)" strokeWidth="2" strokeLinecap="round" fill="none"
         initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.6 : 0 }}
-        transition={{ duration: 0.38, delay: 0.12 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.3 : 0 }}
+        transition={{ duration: 0.5, delay: 0.16, ease: "easeOut" }}
       />
-      {/* Burst particles from edges */}
+      {/* Vine 4 — matcha, lower */}
+      <motion.path
+        d="M44 188 C70 170 96 198 124 178 C152 158 176 192 210 175"
+        stroke="var(--matcha)" strokeWidth="1.8" strokeLinecap="round" fill="none"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: hovered ? 1 : 0, opacity: hovered ? 0.25 : 0 }}
+        transition={{ duration: 0.45, delay: 0.22, ease: "easeOut" }}
+      />
+
+      {/* ── Particles bursting out from card edges ── */}
       {particles.map((p, i) => (
         <motion.circle key={i} cx={p.x} cy={p.y} r={p.r}
           fill={p.color}
+          initial={{ opacity: 0 }}
           animate={hovered
-            ? { cx: p.x + p.vx, cy: p.y + p.vy, opacity: [0, 0.9, 0], r: [p.r, p.r * 1.5, 0] }
+            ? { cx: p.x + p.vx, cy: p.y + p.vy, opacity: [0, 0.85, 0], r: [p.r, p.r * 1.6, 0] }
             : { cx: p.x, cy: p.y, opacity: 0, r: p.r }}
-          transition={{ duration: 0.75, delay: i * 0.04, ease: "easeOut" }}
+          transition={{ duration: 0.75, delay: 0.1 + i * 0.04, ease: "easeOut",
+            repeat: hovered ? Infinity : 0, repeatDelay: 0.5 }}
         />
-      ))}
-      {/* Exclamation marks in margins */}
-      {hovered && [{ x: 10, y: 60 }, { x: 246, y: 55 }, { x: 128, y: 10 }].map((pos, i) => (
-        <motion.text key={i} x={pos.x} y={pos.y}
-          fontSize="18" fill="var(--rose)" fillOpacity={0.75}
-          fontWeight="bold" textAnchor="middle"
-          initial={{ opacity: 0, y: pos.y + 14, scale: 0 }}
-          animate={{ opacity: 0.75, y: pos.y, scale: 1 }}
-          transition={{ delay: 0.18 + i * 0.1, type: "spring", stiffness: 300 }}
-        >!</motion.text>
       ))}
     </svg>
   )
 }
 
 function HiveOverlay({ hovered }: { hovered: boolean }) {
-  // Behind the card (z=0). Overlay extends 28px beyond card.
-  // Warm halo ring visible at card edges + beyond. Long rays extend into margins.
-  // Card center stays readable (card bg covers interior).
-  // viewBox 0 0 256 240: card at x:28→228, y:28→212, center ~(128, 120)
+  // Hexagon confetti: each piece springs up then falls with gravity.
+  // Uses motion.div so CSS transforms work cleanly (no SVG transform-origin issues).
+  // The parent div has inset: -28 and overflow: visible.
+  const hexPath = (r: number) => {
+    const pts = Array.from({ length: 6 }, (_, i) => {
+      const a = (Math.PI / 3) * i - Math.PI / 6
+      return `${r + r * Math.cos(a)} ${r + r * Math.sin(a)}`
+    })
+    return `M ${pts.join(" L ")} Z`
+  }
+  const pieces = [
+    { left: "13%",  top: "27%",  size: 20, color: "var(--matcha)",  delay: 0.00 },
+    { left: "30%",  top: "15%",  size: 16, color: "var(--honey)",   delay: 0.09 },
+    { left: "46%",  top: "9%",   size: 24, color: "var(--sky)",     delay: 0.18 },
+    { left: "64%",  top: "17%",  size: 18, color: "var(--rose)",    delay: 0.04 },
+    { left: "80%",  top: "29%",  size: 22, color: "var(--caramel)", delay: 0.13 },
+    { left: "16%",  top: "50%",  size: 18, color: "var(--honey)",   delay: 0.22 },
+    { left: "77%",  top: "49%",  size: 20, color: "var(--matcha)",  delay: 0.03 },
+    { left: "35%",  top: "64%",  size: 16, color: "var(--sky)",     delay: 0.24 },
+    { left: "60%",  top: "61%",  size: 22, color: "var(--rose)",    delay: 0.08 },
+    { left: "46%",  top: "72%",  size: 18, color: "var(--caramel)", delay: 0.15 },
+    { left: "-1%",  top: "43%",  size: 16, color: "var(--matcha)",  delay: 0.19 },
+    { left: "91%",  top: "42%",  size: 18, color: "var(--honey)",   delay: 0.02 },
+  ]
   return (
-    <div className="absolute inset-0 overflow-visible pointer-events-none">
-      {/* Warm halo — transparent center, color ring at card edges + beyond */}
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          background: "radial-gradient(ellipse at 50% 50%, transparent 38%, color-mix(in srgb, var(--honey) 60%, transparent) 60%, transparent 82%)",
-          borderRadius: "50%",
-        }}
-        animate={{ opacity: hovered ? 0.8 : 0, scale: hovered ? 1.15 : 0.9 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      />
-      {/* Long rotating rays from center, extending into margins */}
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center overflow-visible"
-        animate={{ rotate: hovered ? 360 : 0 }}
-        transition={{ duration: 7, repeat: hovered ? Infinity : 0, ease: "linear" }}
-      >
-        <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
-          {Array.from({ length: 12 }).map((_, i) => {
-            const angle = (i * 30 * Math.PI) / 180
-            // Start rays outside card edge, extend well beyond overlay
-            const x1 = 128 + Math.cos(angle) * 72
-            const y1 = 120 + Math.sin(angle) * 68
-            const x2 = 128 + Math.cos(angle) * 140
-            const y2 = 120 + Math.sin(angle) * 130
-            return (
-              <motion.line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke="var(--honey)" strokeWidth="2" strokeLinecap="round"
-                initial={{ opacity: 0 }} animate={{ opacity: hovered ? 0.6 : 0 }}
-                transition={{ duration: 0.3, delay: i * 0.025 }}
-              />
-            )
-          })}
-        </svg>
-      </motion.div>
-      {/* Corner sparkles in the margins */}
-      {[{ x: "4%", y: "6%" }, { x: "88%", y: "4%" }, { x: "91%", y: "84%" }, { x: "3%", y: "86%" }].map((s, i) => (
-        <motion.div key={i}
+    <div className="absolute inset-0" style={{ overflow: "visible", pointerEvents: "none" }}>
+      {pieces.map((p, i) => (
+        <motion.div
+          key={i}
           className="absolute"
-          style={{ left: s.x, top: s.y, width: 11, height: 11 }}
-          initial={{ opacity: 0, scale: 0, rotate: 0 }}
-          animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0, rotate: hovered ? 45 : 0 }}
-          transition={{ delay: 0.2 + i * 0.08, type: "spring", stiffness: 350 }}
+          style={{ left: p.left, top: p.top, width: p.size, height: p.size }}
+          initial={{ opacity: 0, scale: 0, y: 0 }}
+          animate={hovered
+            ? {
+                opacity: [0, 0.80, 0.65, 0],
+                scale:   [0, 1.4,  1.0,  0.55],
+                y:       [0, -16,  6,    110],
+              }
+            : { opacity: 0, scale: 0, y: 0 }
+          }
+          transition={{
+            duration: 0.9,
+            delay: p.delay,
+            repeat: hovered ? Infinity : 0,
+            repeatDelay: 0.8,
+            times: [0, 0.2, 0.42, 1],
+            ease: ["backOut", "easeOut", "easeIn"],
+          }}
         >
-          <svg width="11" height="11" viewBox="0 0 10 10" fill="none">
-            <path d="M5 0 L5 10 M0 5 L10 5 M1.5 1.5 L8.5 8.5 M8.5 1.5 L1.5 8.5"
-              stroke="var(--honey)" strokeWidth="1.6" strokeLinecap="round" strokeOpacity="0.9" />
+          <svg width={p.size} height={p.size} viewBox={`0 0 ${p.size} ${p.size}`} style={{ overflow: "visible" }}>
+            <path d={hexPath(p.size / 2)} fill={p.color} strokeWidth="0" />
           </svg>
         </motion.div>
       ))}
     </div>
+  )
+}
+
+function FoodOverlay({ hovered }: { hovered: boolean }) {
+  // Forks and carrots float up from behind the card into the margins.
+  // Behind layer (z=0) — card covers center, but items peek around edges.
+
+  // Simple fork SVG path centered at (0,0), height ~22px
+  const forkPath = "M-4,-11 L-4,-4 M4,-11 L4,-4 M0,-11 L0,-4 M-4,-4 C-4,-1 4,-1 4,-4 M0,-4 L0,11"
+
+  const items: { cx: number; cy: number; type: "fork" | "carrot"; color: string; delay: number; dy: number; rotate: number }[] = [
+    { cx: 8,   cy: 60,  type: "fork",   color: "var(--caramel)", delay: 0.00, dy: -20, rotate: -15 },
+    { cx: 248, cy: 80,  type: "carrot", color: "var(--honey)",   delay: 0.06, dy: -18, rotate:  12 },
+    { cx: 12,  cy: 160, type: "carrot", color: "var(--honey)",   delay: 0.10, dy: -22, rotate:  -8 },
+    { cx: 244, cy: 150, type: "fork",   color: "var(--caramel)", delay: 0.04, dy: -16, rotate:  20 },
+    { cx: 80,  cy: 6,   type: "fork",   color: "var(--caramel)", delay: 0.08, dy: -18, rotate:  -5 },
+    { cx: 168, cy: 4,   type: "carrot", color: "var(--honey)",   delay: 0.02, dy: -20, rotate:  10 },
+    { cx: 120, cy: 234, type: "fork",   color: "var(--caramel)", delay: 0.12, dy:  18, rotate: -10 },
+    { cx: 60,  cy: 232, type: "carrot", color: "var(--honey)",   delay: 0.07, dy:  16, rotate:   8 },
+    { cx: 200, cy: 236, type: "fork",   color: "var(--caramel)", delay: 0.05, dy:  20, rotate: -12 },
+  ]
+
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 256 240" fill="none" overflow="visible">
+      {items.map((item, i) => (
+        <motion.g
+          key={i}
+          style={{ transformOrigin: `${item.cx}px ${item.cy}px` }}
+          initial={{ opacity: 0, y: 0 }}
+          animate={hovered
+            ? { opacity: [0, 0.7, 0.5], y: [0, item.dy, item.dy * 0.8], rotate: [item.rotate * 0.5, item.rotate, item.rotate * 0.8] }
+            : { opacity: 0, y: 0, rotate: 0 }
+          }
+          transition={{
+            duration: 1.8,
+            delay: item.delay,
+            repeat: hovered ? Infinity : 0,
+            repeatType: "mirror",
+            ease: "easeInOut",
+          }}
+        >
+          {item.type === "fork" ? (
+            <g transform={`translate(${item.cx},${item.cy})`}>
+              <path d={forkPath} stroke={item.color} strokeWidth="2" strokeLinecap="round" fill="none" />
+            </g>
+          ) : (
+            <g transform={`translate(${item.cx},${item.cy})`}>
+              {/* Carrot body */}
+              <path d="M-6,-12 L0,10 L6,-12 Z" fill="var(--honey)" fillOpacity={0.8} />
+              {/* Carrot top (greens) */}
+              <path d="M-2,-12 C-5,-20 -1,-22 0,-16 C1,-22 5,-20 2,-12" fill="var(--matcha)" fillOpacity={0.9} />
+            </g>
+          )}
+        </motion.g>
+      ))}
+    </svg>
   )
 }
 
@@ -1418,46 +1508,81 @@ function WavyDivider({ color, opacity, flip = false }: { color: string; opacity:
 }
 
 /* ── Featured Card ── */
-function FeaturedCard({ opportunity }: { opportunity: (typeof mockOpportunities)[number] }) {
-  const styles: Record<string, { badge: string; border: string }> = {
-    Environment:    { badge: "bg-matcha/18 text-matcha-dark",   border: "border-t-[3px] border-t-matcha/40"   },
-    Education:      { badge: "bg-honey/18 text-espresso/70",    border: "border-t-[3px] border-t-honey/40"    },
-    Community:      { badge: "bg-caramel/18 text-espresso/70",  border: "border-t-[3px] border-t-caramel/35"  },
-    "Arts & Culture":{ badge: "bg-rose/15 text-rose",           border: "border-t-[3px] border-t-rose/30"    },
+function FeaturedCard({ opportunity, index }: { opportunity: (typeof mockOpportunities)[number]; index: number }) {
+  const catConfig: Record<string, { emoji: string; accent: string; bgCard: string; tagBg: string; tagText: string; strip: string }> = {
+    Environment:     { emoji: "🌿", accent: "var(--matcha)",   bgCard: "bg-matcha/8",   tagBg: "bg-matcha/15",   tagText: "text-matcha-dark", strip: "bg-matcha/20"   },
+    Food:            { emoji: "🥕", accent: "var(--honey)",    bgCard: "bg-honey/8",    tagBg: "bg-honey/18",    tagText: "text-espresso/70", strip: "bg-honey/25"    },
+    Education:       { emoji: "✦",  accent: "var(--sky)",      bgCard: "bg-sky/8",      tagBg: "bg-sky/15",      tagText: "text-espresso/70", strip: "bg-sky/20"      },
+    Community:       { emoji: "🏘️", accent: "var(--caramel)", bgCard: "bg-caramel/8",  tagBg: "bg-caramel/18",  tagText: "text-espresso/70", strip: "bg-caramel/20"  },
+    "Arts & Culture":{ emoji: "🎨", accent: "var(--rose)",     bgCard: "bg-rose/8",     tagBg: "bg-rose/15",     tagText: "text-rose",        strip: "bg-rose/20"     },
   }
-  const s = styles[opportunity.category] ?? { badge: "bg-muted text-muted-foreground", border: "" }
+  const c = catConfig[opportunity.category] ?? { emoji: "✦", accent: "var(--honey)", bgCard: "", tagBg: "bg-muted", tagText: "text-muted-foreground", strip: "bg-muted/40" }
+  const spotsPercent = Math.round((opportunity.spotsLeft / opportunity.totalSpots) * 100)
+  const delays = [0, 0.08, 0.16]
+
   return (
-    <ScaleOnTap className="w-full h-full">
-      <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
-        <Card className={cn(cardClass, "group h-full overflow-hidden transition-shadow hover:shadow-md hover:shadow-espresso/[0.07]", s.border)}>
-          <CardContent className="flex h-full flex-col gap-3 p-5">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-latte font-semibold text-xs text-espresso/70 shrink-0">
-                {opportunity.organization.charAt(0)}
-              </div>
-              <span className="font-serif text-xs italic text-espresso/50 truncate">{opportunity.organization}</span>
-              {opportunity.urgent && (
-                <Badge className="ml-auto rounded-full border-none bg-destructive/10 text-destructive text-[10px] font-medium px-2 py-0.5 shrink-0">
-                  <Zap className="mr-0.5 h-2.5 w-2.5" /> Urgent
-                </Badge>
-              )}
-            </div>
-            <h3 className="text-sm font-semibold leading-snug text-espresso text-balance">{opportunity.title}</h3>
-            <Badge className={cn("w-fit rounded-full border-none text-xs font-medium", s.badge)}>
-              {opportunity.category}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: delays[index] ?? 0, duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -6 }}
+      className="h-full"
+    >
+      <Card className={cn(cardClass, "group h-full overflow-hidden border transition-shadow hover:shadow-lg hover:shadow-espresso/[0.08]", c.bgCard)}>
+        {/* Coloured top strip with emoji + org */}
+        <div className={cn("flex items-center gap-3 px-5 py-3 border-b border-border/40", c.strip)}>
+          <span className="text-2xl leading-none select-none">{c.emoji}</span>
+          <div className="min-w-0">
+            <p className="font-serif text-xs italic text-espresso/55 truncate">{opportunity.organization}</p>
+          </div>
+          {opportunity.urgent && (
+            <Badge className="ml-auto shrink-0 rounded-full border-none bg-destructive/12 text-destructive text-[10px] font-semibold px-2 py-0.5">
+              <Zap className="mr-0.5 h-2.5 w-2.5" /> Urgent
             </Badge>
-            <div className="mt-auto flex items-center justify-between pt-3 border-t border-border/40">
-              <div className="flex items-center gap-1 text-xs font-semibold text-matcha-dark">
-                <Star className="h-3 w-3 fill-matcha text-matcha" /> {opportunity.xpReward} XP
-              </div>
-              <div className="flex items-center gap-1 font-serif text-xs italic text-espresso/40">
-                <Clock className="h-3 w-3" /> {opportunity.timeCommitment}
+          )}
+        </div>
+
+        <CardContent className="flex flex-col gap-3 p-5 pt-4">
+          <h3 className="font-display text-base leading-snug text-espresso tracking-wide">{opportunity.title}</h3>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1.5">
+            {opportunity.tags.slice(0, 3).map(tag => (
+              <span key={tag} className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium", c.tagBg, c.tagText)}>
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Meta row */}
+          <div className="flex items-center gap-3 font-serif text-xs italic text-espresso/45">
+            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {opportunity.location.split(",")[0]}</span>
+            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {opportunity.timeCommitment}</span>
+          </div>
+
+          {/* Spots bar */}
+          <div className="mt-auto pt-3 border-t border-border/35">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-serif text-xs italic text-espresso/45">{opportunity.spotsLeft} spots left</span>
+              <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: c.accent }}>
+                <Star className="h-3 w-3" style={{ fill: c.accent }} /> {opportunity.xpReward} XP
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </ScaleOnTap>
+            <div className="h-1.5 rounded-full bg-espresso/8 overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: c.accent, opacity: 0.6 }}
+                initial={{ width: 0 }}
+                whileInView={{ width: `${100 - spotsPercent}%` }}
+                viewport={{ once: true }}
+                transition={{ delay: (delays[index] ?? 0) + 0.3, duration: 0.7, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
 
