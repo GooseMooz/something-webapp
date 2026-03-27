@@ -3,3 +3,6 @@ node_modules/
 .env*.local
 .DS_Store
 .idea
+data/
+next-env.d.ts
+tsconfig.tsbuildinfo
