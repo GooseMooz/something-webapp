@@ -16,7 +16,6 @@ import {
   Landmark,
   UtensilsCrossed,
   Globe,
-  Mail,
   Phone,
   MapPin,
 } from "lucide-react"

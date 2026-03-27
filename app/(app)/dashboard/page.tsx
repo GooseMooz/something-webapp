@@ -22,12 +22,10 @@ import {
   Target,
   ArrowUpRight,
   Calendar,
-  Zap,
   FileText,
   CircleDot,
   Hourglass,
   ClipboardCheck,
-  MessageSquare,
   Waves,
   Star,
 } from "lucide-react"

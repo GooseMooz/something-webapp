@@ -2,8 +2,7 @@ name: Deployment
 
 on:
   push:
-    branches:
-      - main
+  pull_request:
 
 jobs:
   check:
@@ -20,6 +19,7 @@ jobs:
 
   deploy:
     needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH

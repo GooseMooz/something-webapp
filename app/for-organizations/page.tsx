@@ -4,8 +4,8 @@ import Link from "next/link"
 import Image from "next/image"
 import React, { useState } from "react"
 import {
-  Sparkles, CheckCircle2, ArrowLeft, Send, Mail, X,
-  FileText, AlignLeft, Calendar, Tag, LinkIcon, Building2, User,
+  Sparkles, CheckCircle2, ArrowLeft, Mail, X,
+  FileText, Tag, Building2,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Footer } from "@/components/footer"
-import { SlideUp, StaggerChildren, StaggerItem } from "@/components/motion-wrapper"
+import { SlideUp } from "@/components/motion-wrapper"
 import { cn } from "@/lib/utils"
 
 const cardClass = "border-border/70 bg-card shadow-sm shadow-espresso/[0.04]"
@@ -48,7 +48,7 @@ const RAINBOW_PARTICLES = [
   { angle: 360, dist: 52 },
 ]
 
-function BenefitBubble({ title, body, emoji, color, bg, border, shape, dur, floatDelay }: {
+function BenefitBubble({ title, body, emoji, color: bg, border, shape, dur, floatDelay }: {
   title: string; body: string; emoji: string; color: string; bg: string; border: string
   shape: string; dur: number; floatDelay: number
 }) {

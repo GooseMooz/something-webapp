@@ -1,21 +1,19 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Globe, Mail, Phone, MapPin, Calendar, Users, CheckCircle2, Edit3, ExternalLink, Sparkles } from "lucide-react"
+import { Globe, Mail, Phone, MapPin, Users, CheckCircle2, Edit3, ExternalLink, Sparkles } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FadeIn, SlideUp, ScaleOnTap } from "@/components/motion-wrapper"
-import { mockOrg, mockOpportunities } from "@/lib/mock-data"
+import { mockOrg  } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 const cardClass = "border-border/60 bg-card shadow-sm shadow-espresso/[0.03]"
 
 export default function OrgProfilePage() {
   const org = mockOrg
-  const orgOpportunities = mockOpportunities.filter(op => ["op1", "op3", "op7"].includes(op.id))
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 pb-24 md:px-6 md:py-8 md:pb-8">
       {/* Header */}

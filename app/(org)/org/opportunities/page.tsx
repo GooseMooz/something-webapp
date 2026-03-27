@@ -4,15 +4,14 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Plus, Users, Clock, Star, MapPin, Zap, Eye, ChevronRight, X, FileText,
-  Calendar, CheckCircle2, Edit3, LinkIcon, AlignLeft, Tag, Hash, ArrowLeft,
-  TrendingUp,
+  Calendar, CheckCircle2, Edit3, LinkIcon, AlignLeft, Tag, ArrowLeft,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FadeIn, SlideUp, StaggerChildren, StaggerItem, ScaleOnTap } from "@/components/motion-wrapper"
-import { mockOpportunities, mockOrgApplications, mockOrg, type OrgApplication } from "@/lib/mock-data"
+import { mockOpportunities, mockOrgApplications, mockOrg } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 
@@ -29,8 +28,6 @@ export default function OrgOpportunitiesPage() {
   if (selectedOpportunity) {
     const applicants = mockOrgApplications.filter(a => a.opportunityId === selectedOpportunity.id)
     const accepted = applicants.filter(a => a.status === "accepted").length
-    const spotsPercent = ((selectedOpportunity.totalSpots - selectedOpportunity.spotsLeft) / selectedOpportunity.totalSpots) * 100
-
     return (
       <div className="mx-auto max-w-6xl px-4 py-6 pb-24 md:px-6 md:py-8 md:pb-8">
         <FadeIn>

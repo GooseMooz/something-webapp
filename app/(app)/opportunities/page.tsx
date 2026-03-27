@@ -13,7 +13,6 @@ import {
   Zap,
   Star,
   ArrowRight,
-  TrendingUp,
   Leaf,
   BookOpen,
   Handshake,
@@ -22,7 +21,6 @@ import {
   Laptop,
   Dumbbell,
   Grid3X3,
-  ChevronDown,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Input } from "@/components/ui/input"
@@ -44,7 +42,6 @@ import {
   SlideUp,
   StaggerChildren,
   StaggerItem,
-  ScaleOnTap,
 } from "@/components/motion-wrapper"
 import { mockOpportunities, categories } from "@/lib/mock-data"
 import type { Opportunity } from "@/lib/mock-data"

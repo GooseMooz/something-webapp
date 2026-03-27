@@ -187,7 +187,6 @@ export function FloatingParticles({
         opacity: Math.random() * 0.3 + 0.1,
       }))
     )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count])
 
   if (particles.length === 0) return null

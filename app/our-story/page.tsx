@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Sparkles, Heart, Users, Globe, ArrowLeft, CheckCircle2 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"

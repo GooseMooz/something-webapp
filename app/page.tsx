@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useRef } from "react"
+import { useState } from "react"
 import React from "react"
-import { ArrowRight, Sparkles, Heart, TrendingUp, MapPin, Clock, Zap, Star, Leaf, UtensilsCrossed, Landmark, Trophy, CalendarHeart, BookOpen, Users, CheckCircle2, Shield, Send } from "lucide-react"
+import { ArrowRight, Sparkles, Heart, TrendingUp, MapPin, Clock, Zap, Star, Leaf, UtensilsCrossed, Landmark, Trophy, CalendarHeart, CheckCircle2, Shield, Send } from "lucide-react"
 import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -19,9 +19,7 @@ import {
   StaggerChildren,
   StaggerItem,
   ScaleOnTap,
-  AnimatedCounter,
   WavyText,
-  Shimmer,
 } from "@/components/motion-wrapper"
 import { mockOpportunities } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
@@ -34,18 +32,6 @@ function Asterisk({ size = 24, color, className = "" }: { size?: number; color: 
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
       <path d="M12 2V22M2 12H22M4.9 4.9L19.1 19.1M19.1 4.9L4.9 19.1" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
     </svg>
-  )
-}
-
-/* ── Floating dot ── */
-function FloatDot({ color, className = "" }: { color: string; className?: string }) {
-  return (
-    <motion.div
-      className={`rounded-full ${className}`}
-      style={{ backgroundColor: color }}
-      animate={{ y: [-4, 4, -4] }}
-      transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, ease: "easeInOut" }}
-    />
   )
 }
 
@@ -1424,64 +1410,6 @@ function CurvedArrow({
   )
 }
 
-/* ── Hover-burst particle button ── */
-function ParticleButton({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  const [hovered, setHovered] = React.useState(false)
-  const [particles, setParticles] = React.useState<
-    { id: number; angle: number; distance: number; color: string; size: number; dur: number }[]
-  >([])
-
-  React.useEffect(() => {
-    const colors = ["var(--matcha)", "var(--honey)", "var(--rose)", "var(--caramel)", "#8BB8E0"]
-    setParticles(
-      Array.from({ length: 18 }, (_, i) => ({
-        id: i,
-        angle: (360 / 18) * i + (Math.random() * 18 - 9),
-        distance: 38 + Math.random() * 52,
-        color: colors[i % colors.length],
-        size: Math.random() * 5 + 4,
-        dur: 0.35 + Math.random() * 0.25,
-      }))
-    )
-  }, [])
-
-  return (
-    <div
-      className={cn("relative inline-flex", className)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {particles.map((p) => {
-        const rad = (p.angle * Math.PI) / 180
-        const tx = Math.cos(rad) * p.distance
-        const ty = Math.sin(rad) * p.distance
-        return (
-          <motion.div
-            key={p.id}
-            className="pointer-events-none absolute rounded-full"
-            style={{
-              width: p.size, height: p.size, backgroundColor: p.color,
-              top: "50%", left: "50%",
-              marginTop: -p.size / 2, marginLeft: -p.size / 2,
-              zIndex: hovered ? 20 : -1,
-            }}
-            animate={
-              hovered
-                ? { x: tx, y: ty, scale: [0, 1.3, 1], opacity: [0, 1, 0.85] }
-                : { x: 0,  y: 0,  scale: 0,             opacity: 0 }
-            }
-            transition={
-              hovered
-                ? { duration: p.dur, ease: [0.2, 0, 0.4, 1] }
-                : { duration: 0.28, ease: [0.6, 0, 1, 0.6] }
-            }
-          />
-        )
-      })}
-      {children}
-    </div>
-  )
-}
 
 /* ── Wavy section divider ── */
 function WavyDivider({ color, opacity, flip = false }: { color: string; opacity: number; flip?: boolean }) {

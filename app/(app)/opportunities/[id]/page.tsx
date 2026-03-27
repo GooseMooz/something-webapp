@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
 import {
-  ArrowLeft, MapPin, Clock, Calendar, Users, Star, Zap, Share2, Heart, CheckCircle2, FileText, Sparkles, Award, Shield, ExternalLink,
+  ArrowLeft, MapPin, Clock, Calendar, Users, Star, Zap, Share2, Heart, CheckCircle2, FileText, Sparkles, Award, ExternalLink,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"

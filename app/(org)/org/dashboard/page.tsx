@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Users, Calendar, CheckCircle2, Clock, TrendingUp, Zap, ArrowUpRight, Mail } from "lucide-react"
+import { Users, Calendar, CheckCircle2, TrendingUp, Zap, ArrowUpRight, Mail } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"

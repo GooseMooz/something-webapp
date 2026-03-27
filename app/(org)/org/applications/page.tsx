@@ -3,12 +3,12 @@
 import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
-import { CheckCircle2, Eye, Clock, Star, FileText, Sparkles, Award, X, ChevronDown, Mail, Phone, ExternalLink, Instagram, Linkedin } from "lucide-react"
+import { CheckCircle2, FileText, Sparkles, ChevronDown, Mail, Phone, ExternalLink, Instagram, Linkedin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FadeIn, SlideUp, StaggerChildren, StaggerItem, ScaleOnTap, ConfettiBurst } from "@/components/motion-wrapper"
-import { mockOrgApplications, mockOpportunities, type OrgApplication } from "@/lib/mock-data"
+import { FadeIn, StaggerChildren, StaggerItem, ScaleOnTap, ConfettiBurst } from "@/components/motion-wrapper"
+import { mockOrgApplications, type OrgApplication } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 const cardClass = "border-border/60 bg-card shadow-sm shadow-espresso/[0.03]"
@@ -135,7 +135,7 @@ function ApplicantCard({ application, isAccepted, onAccept }: { application: Org
       <Card className={cn(
         cardClass,
         "overflow-hidden h-full transition-all relative",
-        wasAccepted ? "ring-1 ring-matcha/25 shadow-md shadow-matcha/[0.06]" : "hover:shadow-md hover:shadow-espresso/[0.06]"
+        wasAccepted ? "ring-1 ring-matcha/25 shadow-md shadow-matcha/6" : "hover:shadow-md hover:shadow-espresso/6"
       )}>
         <ConfettiBurst active={showConfetti} />
         <motion.div
