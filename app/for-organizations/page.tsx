@@ -192,12 +192,13 @@ function StepCards() {
   )
 }
 
-const REQUIRED_FIELDS = ["orgName", "contactName", "email", "address", "title", "description", "date", "duration", "location"] as const
+const REQUIRED_FIELDS = ["orgName", "contactName", "email", "title", "description", "date", "time", "duration", "location"] as const
 const FORM_DRAFT_KEY = "task-form-draft"
 const INITIAL_FORM = {
   orgName: "", contactName: "", email: "", phone: "", address: "", website: "",
-  title: "", category: "Environment", description: "",
-  date: "", duration: "", location: "", totalSpots: "", xpReward: "",
+  title: "", category: "Environment", description: "", difficulty: "Easy",
+  date: "", time: "", duration: "", recurring: "", location: "", totalSpots: "",
+  dropIn: false,
   tags: "", resourceLink: "",
 }
 
@@ -216,22 +217,37 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
     }
   })
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+  const set = (k: keyof Omit<typeof form, "dropIn">) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => {
       const next = { ...f, [k]: e.target.value }
       try { localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(next)) } catch {}
       return next
     })
 
+  function toggleDropIn() {
+    setForm(f => {
+      const next = { ...f, dropIn: !f.dropIn }
+      try { localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
   const missing = (k: typeof REQUIRED_FIELDS[number]) => attempted && !form[k].trim()
 
   const errClass = (k: typeof REQUIRED_FIELDS[number]) =>
     missing(k) ? "border-rose/60 focus:ring-rose/40" : ""
 
+  const DURATION_RE = /^\d+(\.\d+)?$/
+  const durationBadFormat = attempted && !!form.duration.trim() && !DURATION_RE.test(form.duration.trim())
+  const durationErr = durationBadFormat
+    ? "border-rose/60 focus:ring-rose/40"
+    : errClass("duration")
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setAttempted(true)
     if (REQUIRED_FIELDS.some(k => !form[k].trim())) return
+    if (!DURATION_RE.test(form.duration.trim())) return
 
     setLoading(true)
     try {
@@ -252,10 +268,13 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
             category:       form.category,
             description:    form.description,
             date:           form.date,
-            timeCommitment: form.duration,
-            location:       form.location,
+            time:           form.time,
+            durationHours:  Number(form.duration),
+            recurring:      form.recurring || undefined,
+            dropIn:         form.dropIn,
+            location:       form.location || undefined,
             totalSpots:     form.totalSpots ? Number(form.totalSpots) : undefined,
-            xpReward:       form.xpReward  ? Number(form.xpReward)   : undefined,
+            difficulty:     ["Easy", "Medium", "Hard"].indexOf(form.difficulty),
             tags:           form.tags ? form.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
             links: {
               additionalResources: form.resourceLink || undefined,
@@ -356,14 +375,13 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
                       {missing("email") && <p className="text-xs text-rose mt-1">Required</p>}
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Phone</label>
+                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Phone <span className="font-normal opacity-60">(optional)</span></label>
                       <Input type="tel" value={form.phone} onChange={set("phone")} placeholder="(604) 555-0100" className="rounded-xl h-10 text-sm" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-espresso/40 mb-1 block">Address *</label>
-                    <Input value={form.address} onChange={set("address")} placeholder="123 Main St, Vancouver, BC" className={cn("rounded-xl h-10 text-sm", errClass("address"))} />
-                    {missing("address") && <p className="text-xs text-rose mt-1">Required</p>}
+                    <label className="text-xs font-semibold text-espresso/40 mb-1 block">Address <span className="font-normal opacity-60">(optional)</span></label>
+                    <Input value={form.address} onChange={set("address")} placeholder="123 Main St, Vancouver, BC" className="rounded-xl h-10 text-sm" />
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-espresso/40 mb-1 block">Website</label>
@@ -400,8 +418,15 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">XP reward</label>
-                      <Input type="number" min={0} value={form.xpReward} onChange={set("xpReward")} placeholder="e.g. 150" className="rounded-xl h-10 text-sm" />
+                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Difficulty</label>
+                      <select
+                        value={form.difficulty} onChange={set("difficulty")}
+                        className="w-full rounded-xl border border-border/60 bg-card px-3 py-2.5 text-sm text-espresso focus:outline-none focus:ring-1 focus:ring-matcha"
+                      >
+                        <option>Easy</option>
+                        <option>Medium</option>
+                        <option>Hard</option>
+                      </select>
                     </div>
                   </div>
                   <div>
@@ -420,9 +445,27 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
                       {missing("date") && <p className="text-xs text-rose mt-1">Required</p>}
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Duration *</label>
-                      <Input value={form.duration} onChange={set("duration")} placeholder="e.g. 3 hours" className={cn("rounded-xl h-10 text-sm", errClass("duration"))} />
-                      {missing("duration") && <p className="text-xs text-rose mt-1">Required</p>}
+                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Time *</label>
+                      <Input type="time" value={form.time} onChange={set("time")} className={cn("rounded-xl h-10 text-sm", errClass("time"))} />
+                      {missing("time") && <p className="text-xs text-rose mt-1">Required</p>}
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Duration (hours) *</label>
+                      <Input type="text" inputMode="decimal" value={form.duration} onChange={set("duration")} placeholder="e.g. 2.5" className={cn("rounded-xl h-10 text-sm", durationErr)} />
+                      {missing("duration") && !durationBadFormat && <p className="text-xs text-rose mt-1">Required</p>}
+                      {durationBadFormat && <p className="text-xs text-rose mt-1">Please enter a number (e.g. 1.5)</p>}
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-espresso/40 mb-1 block">Recurring</label>
+                      <select
+                        value={form.recurring} onChange={set("recurring")}
+                        className="w-full rounded-xl border border-border/60 bg-card px-3 py-2.5 text-sm text-espresso focus:outline-none focus:ring-1 focus:ring-matcha"
+                      >
+                        <option value="">One-time</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Every two weeks</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-espresso/40 mb-1 block">Location *</label>
@@ -434,6 +477,30 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
                       <Input type="number" min={1} value={form.totalSpots} onChange={set("totalSpots")} placeholder="e.g. 20" className="rounded-xl h-10 text-sm" />
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={toggleDropIn}
+                    className={cn(
+                      "w-full flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors",
+                      form.dropIn
+                        ? "border-matcha/40 bg-matcha/8"
+                        : "border-border/60 bg-card hover:border-border"
+                    )}
+                  >
+                    <div>
+                      <p className={cn("text-sm font-semibold", form.dropIn ? "text-espresso" : "text-espresso/60")}>Drop-in</p>
+                      <p className="font-serif text-[11px] italic text-espresso/40 mt-0.5">Anyone who applies is automatically approved</p>
+                    </div>
+                    <div className={cn(
+                      "flex h-5 w-9 items-center rounded-full transition-colors shrink-0",
+                      form.dropIn ? "bg-matcha/70" : "bg-espresso/15"
+                    )}>
+                      <span className={cn(
+                        "ml-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform",
+                        form.dropIn ? "translate-x-4" : "translate-x-0"
+                      )} />
+                    </div>
+                  </button>
                 </div>
               </div>
 
