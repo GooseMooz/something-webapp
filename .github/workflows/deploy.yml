@@ -38,6 +38,10 @@ jobs:
             echo "Building Docker image..."
             docker build -t something-webapp .
 
+            echo "Ensuring data directory permissions..."
+            mkdir -p ${{ secrets.APP_DIR }}/data
+            chown -R 1001:1001 ${{ secrets.APP_DIR }}/data
+
             echo "Restarting container..."
             docker stop something-webapp 2>/dev/null || true
             docker rm something-webapp 2>/dev/null || true
