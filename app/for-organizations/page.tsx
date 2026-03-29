@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
-  Sparkles, CheckCircle2, ArrowLeft, Mail, X,
+  Sparkles, CheckCircle2, ArrowLeft, Mail, Trash2,
   FileText, Tag, Building2,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -193,21 +193,35 @@ function StepCards() {
 }
 
 const REQUIRED_FIELDS = ["orgName", "contactName", "email", "address", "title", "description", "date", "duration", "location"] as const
+const FORM_DRAFT_KEY = "task-form-draft"
+const INITIAL_FORM = {
+  orgName: "", contactName: "", email: "", phone: "", address: "", website: "",
+  title: "", category: "Environment", description: "",
+  date: "", duration: "", location: "", totalSpots: "", xpReward: "",
+  tags: "", resourceLink: "",
+}
 
 /* ── Submit Task Modal ── */
 function SubmitTaskModal({ onClose }: { onClose: () => void }) {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [attempted, setAttempted] = useState(false)
-  const [form, setForm] = useState({
-    orgName: "", contactName: "", email: "", phone: "", address: "", website: "",
-    title: "", category: "Environment", description: "",
-    date: "", duration: "", location: "", totalSpots: "", xpReward: "",
-    tags: "", resourceLink: "",
+  const [form, setForm] = useState<typeof INITIAL_FORM>(() => {
+    if (typeof window === "undefined") return INITIAL_FORM
+    try {
+      const saved = localStorage.getItem(FORM_DRAFT_KEY)
+      return saved ? { ...INITIAL_FORM, ...JSON.parse(saved) } : INITIAL_FORM
+    } catch {
+      return INITIAL_FORM
+    }
   })
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }))
+    setForm(f => {
+      const next = { ...f, [k]: e.target.value }
+      try { localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
 
   const missing = (k: typeof REQUIRED_FIELDS[number]) => attempted && !form[k].trim()
 
@@ -249,6 +263,7 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
           },
         }),
       })
+      try { localStorage.removeItem(FORM_DRAFT_KEY) } catch {}
       setSubmitted(true)
     } finally {
       setLoading(false)
@@ -306,10 +321,11 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
               </div>
               <button
                 type="button"
-                onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-latte transition-colors text-espresso/40 hover:text-espresso"
+                onClick={() => { try { localStorage.removeItem(FORM_DRAFT_KEY) } catch {}; onClose() }}
+                title="Discard draft"
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-rose/10 transition-colors text-espresso/30 hover:text-rose/70"
               >
-                <X className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
 
@@ -468,6 +484,19 @@ function SubmitTaskModal({ onClose }: { onClose: () => void }) {
 ══════════════════════════════════════════════════════════════ */
 export default function ForOrganizationsPage() {
   const [showForm, setShowForm] = useState(false)
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(FORM_DRAFT_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        const hasData = Object.values(parsed).some(
+          (v) => typeof v === "string" && v.trim() !== "" && v !== "Environment"
+        )
+        if (hasData) setShowForm(true)
+      }
+    } catch {}
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
