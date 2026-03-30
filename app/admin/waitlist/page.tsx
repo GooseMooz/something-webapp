@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { CopyEmailsButton } from './copy-emails-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,10 +40,15 @@ export default function WaitlistAdminPage() {
           <p className="font-sans text-xs font-medium uppercase tracking-widest text-[#a07850] mb-1">
             Admin
           </p>
-          <h1 className="font-display text-3xl text-[#2c1f0e]">Waitlist</h1>
-          <p className="mt-1 font-sans text-sm text-[#7a6651]">
-            {entries.length} {entries.length === 1 ? 'person' : 'people'} signed up
-          </p>
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 className="font-display text-3xl text-[#2c1f0e]">Waitlist</h1>
+              <p className="mt-1 font-sans text-sm text-[#7a6651]">
+                {entries.length} {entries.length === 1 ? 'person' : 'people'} signed up
+              </p>
+            </div>
+            {entries.length > 0 && <CopyEmailsButton emails={sorted.map(e => e.email)} />}
+          </div>
         </div>
 
         <div className="rounded-[0.8rem] border border-[#e8ddd0] overflow-hidden">

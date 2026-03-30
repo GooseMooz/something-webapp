@@ -1517,7 +1517,7 @@ function FeaturedCard({ opportunity, index }: { opportunity: (typeof mockOpportu
 /* ── Hero Waitlist Form ── */
 function HeroWaitlistForm() {
   const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle")
   const [burst, setBurst] = React.useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1529,7 +1529,7 @@ function HeroWaitlistForm() {
     setStatus("loading")
     try {
       const res = await fetch("/api/waitlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
-      if (res.ok) { haptic("success"); setStatus("success"); setEmail("") } else { haptic("error"); setStatus("error") }
+      if (res.ok) { const data = await res.json(); haptic("success"); setStatus(data.message === "Already on waitlist" ? "duplicate" : "success"); setEmail("") } else { haptic("error"); setStatus("error") }
     } catch { haptic("error"); setStatus("error") }
   }
 
@@ -1537,6 +1537,13 @@ function HeroWaitlistForm() {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-matcha-dark">
         <CheckCircle2 className="h-4 w-4" /> You&apos;re on the list! We&apos;ll be in touch.
+      </motion.div>
+    )
+  }
+  if (status === "duplicate") {
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-espresso/50">
+        <CheckCircle2 className="h-4 w-4" /> You&apos;re already on the list!
       </motion.div>
     )
   }
@@ -1586,7 +1593,7 @@ function HeroWaitlistForm() {
 /* ── Final CTA Waitlist Form ── */
 function FinalCTAForm() {
   const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle")
   const [burst, setBurst] = React.useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1598,7 +1605,7 @@ function FinalCTAForm() {
     setStatus("loading")
     try {
       const res = await fetch("/api/waitlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
-      if (res.ok) { haptic("success"); setStatus("success"); setEmail("") } else { haptic("error"); setStatus("error") }
+      if (res.ok) { const data = await res.json(); haptic("success"); setStatus(data.message === "Already on waitlist" ? "duplicate" : "success"); setEmail("") } else { haptic("error"); setStatus("error") }
     } catch { haptic("error"); setStatus("error") }
   }
 
@@ -1606,6 +1613,13 @@ function FinalCTAForm() {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-cream/70">
         <CheckCircle2 className="h-4 w-4 text-matcha" /> You&apos;re on the list! We&apos;ll be in touch.
+      </motion.div>
+    )
+  }
+  if (status === "duplicate") {
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-cream/50">
+        <CheckCircle2 className="h-4 w-4 text-matcha" /> You&apos;re already on the list!
       </motion.div>
     )
   }

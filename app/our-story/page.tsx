@@ -151,7 +151,7 @@ export default function OurStoryPage() {
 
 function OurStoryWaitlistForm() {
   const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -164,7 +164,7 @@ function OurStoryWaitlistForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       })
-      if (res.ok) { haptic("success"); setStatus("success"); setEmail("") }
+      if (res.ok) { const data = await res.json(); haptic("success"); setStatus(data.message === "Already on waitlist" ? "duplicate" : "success"); setEmail("") }
       else { haptic("error"); setStatus("error") }
     } catch { haptic("error"); setStatus("error") }
   }
@@ -178,6 +178,18 @@ function OurStoryWaitlistForm() {
       >
         <CheckCircle2 className="h-4 w-4" />
         You&apos;re on the list! We&apos;ll be in touch soon.
+      </motion.div>
+    )
+  }
+  if (status === "duplicate") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center justify-center gap-2 font-serif italic text-sm text-espresso/50"
+      >
+        <CheckCircle2 className="h-4 w-4" />
+        You&apos;re already on the list!
       </motion.div>
     )
   }
