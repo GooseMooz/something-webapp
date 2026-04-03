@@ -33,6 +33,7 @@ jobs:
               --name something-webapp \
               --restart unless-stopped \
               -p 3009:3000 \
+              -e BACKEND_URL=${{ secrets.BACKEND_URL }} \
               -v ${{ secrets.APP_DIR }}/data:/app/data \
               something-webapp
 
