@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Sparkles, Eye, EyeOff, ArrowRight, ArrowLeft, Check,
   Heart, Leaf, BookOpen, Palette, Users, Brain, Utensils,
-  Shield, MapPin, Smile, Briefcase, Repeat,
+  Shield,
   Camera, FileText, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -44,21 +44,13 @@ const frequencyOptions = [
   { id: "high",   label: "Weekly",    sub: "I want to make it a habit" },
 ]
 
-const motivationOptions = [
-  { id: "skills", label: "Build real skills", icon: Briefcase },
-  { id: "causes", label: "Support causes I care about", icon: Heart },
-  { id: "people", label: "Meet new people", icon: Smile },
-  { id: "hours", label: "Log required hours", icon: Repeat },
-  { id: "explore", label: "Explore Vancouver", icon: MapPin },
-  { id: "portfolio", label: "Strengthen my portfolio", icon: BookOpen },
-]
-
 export default function SignupPage() {
   const router = useRouter()
   const { loginAsUser, setUser, type, isLoading } = useAuth()
+  const isSigningUp = useRef(false)
 
   useEffect(() => {
-    if (isLoading) return
+    if (isLoading || isSigningUp.current) return
     if (type === "user") router.replace("/opportunities")
     else if (type === "org") router.replace("/org/opportunities")
   }, [isLoading, type, router])
@@ -68,7 +60,6 @@ export default function SignupPage() {
   const [selectedCauses, setSelectedCauses] = useState<string[]>([])
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null)
-  const [selectedMotivations, setSelectedMotivations] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
 
   // Step 0 form fields
@@ -99,11 +90,6 @@ export default function SignupPage() {
     haptic("selection")
     setSelectedSkills((prev) => prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill])
   }
-  function toggleMotivation(id: string) {
-    haptic("selection")
-    setSelectedMotivations((prev) => prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id])
-  }
-
   async function handleNext() {
     if (step < 3) {
       haptic("light")
@@ -112,6 +98,7 @@ export default function SignupPage() {
       // Step 3 complete — register, login, update profile, then show upload step
       haptic("success")
       setSubmitting(true)
+      isSigningUp.current = true
       try {
         await authApi.register({ name, email, password })
         const { token } = await authApi.login({ email, password })
@@ -151,6 +138,7 @@ export default function SignupPage() {
         setUploading(false)
       }
     }
+    isSigningUp.current = false
     haptic("success")
     router.push("/opportunities")
   }
@@ -400,7 +388,7 @@ export default function SignupPage() {
 
                   <div className="flex flex-col gap-3">
                     <p className="text-sm font-semibold text-espresso">How often do you want to volunteer?</p>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {frequencyOptions.map((opt) => (
                         <button key={opt.id} onClick={() => { setSelectedFrequency(opt.id); haptic("selection") }} className={cn("rounded-xl border-2 p-3 text-left transition-all", selectedFrequency === opt.id ? "border-matcha bg-matcha/10" : "border-border/60 hover:border-matcha/25")}>
                           <p className={cn("text-sm font-medium", selectedFrequency === opt.id ? "text-espresso" : "text-espresso/70")}>{opt.label}</p>
@@ -410,23 +398,6 @@ export default function SignupPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <p className="text-sm font-semibold text-espresso">
-                      What are you hoping to get from volunteering? <span className="font-serif italic text-espresso/35 font-normal">(pick all that apply)</span>
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {motivationOptions.map((opt) => {
-                        const isSelected = selectedMotivations.includes(opt.id)
-                        return (
-                          <button key={opt.id} onClick={() => toggleMotivation(opt.id)} className={cn("flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all", isSelected ? "border-sky bg-sky/15 text-sky-dark" : "border-border/70 text-espresso/55 hover:border-sky/40 hover:text-espresso")}>
-                            {isSelected && <Check className="h-3 w-3" />}
-                            <opt.icon className="h-3 w-3" />
-                            {opt.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
