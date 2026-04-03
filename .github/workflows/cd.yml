@@ -40,4 +40,7 @@ jobs:
             echo "Cleaning up old images..."
             docker image prune -f
 
+            docker network connect something-backend_default something-webapp
+            echo "Container networks are connected."
+
             echo "Done. Container is up on port 3009."

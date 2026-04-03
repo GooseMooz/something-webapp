@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { XpRing } from "@/components/xp-ring"
 import { FadeIn, StaggerChildren, StaggerItem, ScaleOnTap } from "@/components/motion-wrapper"
-import { ImageCropModal } from "@/components/image-crop-modal"
 import { streakData } from "@/lib/mock-data"
 import { usersApi, normalizeCause } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
@@ -39,10 +38,10 @@ export default function ProfilePage() {
   const [editOpen, setEditOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingPfp, setUploadingPfp] = useState(false)
+  const [localPfpUrl, setLocalPfpUrl] = useState<string | null>(null)
   const [uploadingResume, setUploadingResume] = useState(false)
   const pfpInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
-  const [cropSrc, setCropSrc] = useState<{ src: string; name: string; mime: string } | null>(null)
 
   // Edit form state — initialised from live user data
   const [editName, setEditName] = useState(user?.name ?? "")
@@ -87,24 +86,37 @@ export default function ProfilePage() {
     }
   }
 
-  function handlePfpChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePfpChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) return
+    e.target.value = ""
+    if (!file || !token || !userId) return
     if (file.size > 10 * 1024 * 1024) {
       toast.error("Image must be under 10 MB")
-      e.target.value = ""
       return
     }
-    const reader = new FileReader()
-    reader.onload = () => setCropSrc({ src: reader.result as string, name: file.name, mime: file.type })
-    reader.readAsDataURL(file)
-    e.target.value = ""
-  }
 
-  async function handleCropConfirm(croppedFile: File) {
-    if (!token || !userId) return
-    setCropSrc(null)
+    let croppedFile: File
+    if (file.type === "image/gif") {
+      croppedFile = file
+    } else {
+      const bitmap = await createImageBitmap(file)
+      const size = Math.min(bitmap.width, bitmap.height)
+      const sx = (bitmap.width - size) / 2
+      const sy = (bitmap.height - size) / 2
+      const canvas = document.createElement("canvas")
+      canvas.width = size
+      canvas.height = size
+      canvas.getContext("2d")!.drawImage(bitmap, sx, sy, size, size, 0, 0, size, size)
+      bitmap.close()
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error("toBlob failed")), "image/jpeg", 0.92)
+      )
+      croppedFile = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" })
+    }
+
     setUploadingPfp(true)
+    const objectUrl = URL.createObjectURL(croppedFile)
+    setLocalPfpUrl(objectUrl)
     try {
       const updated = await usersApi.uploadPfp(userId, croppedFile, token)
       setUser(updated)
@@ -112,6 +124,8 @@ export default function ProfilePage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed")
     } finally {
+      setLocalPfpUrl(null)
+      URL.revokeObjectURL(objectUrl)
       setUploadingPfp(false)
     }
   }
@@ -134,17 +148,6 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 pb-24 md:px-6 md:py-8 md:pb-8">
-      <AnimatePresence>
-        {cropSrc && (
-          <ImageCropModal
-            src={cropSrc.src}
-            fileName={cropSrc.name}
-            mimeType={cropSrc.mime}
-            onConfirm={handleCropConfirm}
-            onCancel={() => setCropSrc(null)}
-          />
-        )}
-      </AnimatePresence>
 
       {/* Profile Header */}
       <FadeIn>
@@ -175,11 +178,11 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center -mt-10 sm:flex-row sm:items-end sm:gap-5">
               {/* Avatar with upload */}
               <div className="relative group">
-                {user?.s3_pfp ? (
+                {(localPfpUrl || user?.s3_pfp) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={user.s3_pfp}
-                    alt={user.name}
+                    src={localPfpUrl ?? user!.s3_pfp!}
+                    alt={user?.name ?? ""}
                     className="h-20 w-20 rounded-2xl border-4 border-card object-cover shadow-lg"
                   />
                 ) : (
