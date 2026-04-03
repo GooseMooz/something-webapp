@@ -388,14 +388,12 @@ function ApplicationDetail({ app, onWithdraw }: { app: ApiApplication; onWithdra
           )}
         </div>
 
-        {/* Categories */}
-        {opp?.categories && opp.categories.length > 0 && (
+        {/* Category */}
+        {opp?.category && (
           <div className="flex flex-wrap gap-1.5">
-            {opp.categories.map((c) => (
-              <Badge key={c} variant="outline" className="rounded-full text-[10px] font-semibold text-espresso/50 border-border/50 px-2 py-0.5">
-                {normalizeCause(c)}
-              </Badge>
-            ))}
+            <Badge variant="outline" className="rounded-full text-[10px] font-semibold text-espresso/50 border-border/50 px-2 py-0.5">
+              {normalizeCause(opp.category)}
+            </Badge>
           </div>
         )}
 

@@ -330,7 +330,7 @@ export default function ProfilePage() {
                   <Sparkles className="h-4 w-4 text-matcha-dark" />Skills
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {(user?.skills ?? []).length > 0 ? (user.skills!).map((skill, i) => {
+                  {(user?.skills ?? []).length > 0 ? (user?.skills ?? []).map((skill, i) => {
                     const colors = ["bg-matcha/15 text-matcha-dark","bg-honey/15 text-espresso/70","bg-sky/15 text-sky-dark","bg-caramel/15 text-espresso/60","bg-rose/12 text-rose"]
                     return (
                       <motion.div key={skill} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
@@ -347,7 +347,7 @@ export default function ProfilePage() {
                   <Heart className="h-4 w-4 text-rose" />Causes
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {(user?.categories ?? []).length > 0 ? (user.categories!).map((cause, i) => {
+                  {(user?.categories ?? []).length > 0 ? (user?.categories ?? []).map((cause, i) => {
                     const colors = ["bg-rose/12 text-rose","bg-matcha/15 text-matcha-dark","bg-caramel/15 text-espresso/60","bg-honey/15 text-espresso/70","bg-sky/15 text-sky-dark"]
                     return (
                       <motion.div key={cause} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
