@@ -647,11 +647,11 @@ export default function ForOrganizationsPage() {
               Something connects Metro Vancouver community organizations with young volunteers who genuinely care about your cause. Less admin for your team, better outcomes for everyone.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a href="mailto:hi@somethingmatters.ca">
+              <Link href="/org/signup">
                 <Button className="rounded-full bg-espresso text-cream font-semibold px-7 h-11 text-sm hover:bg-espresso/90 shadow-md">
-                  <Mail className="mr-2 h-3.5 w-3.5" /> Get in touch
+                  Register your org
                 </Button>
-              </a>
+              </Link>
               <button
                 onClick={() => setShowForm(true)}
                 className="inline-flex items-center rounded-full border border-espresso/20 bg-transparent px-7 h-11 text-sm font-semibold hover:bg-espresso/6 transition-colors text-espresso/60 hover:text-espresso"
@@ -847,18 +847,16 @@ export default function ForOrganizationsPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a href="mailto:hi@somethingmatters.ca">
+              <Link href="/org/signup">
                 <Button className="rounded-full bg-honey text-espresso font-semibold px-8 h-11 text-sm hover:bg-honey/90 shadow-lg">
-                  <Mail className="mr-2 h-3.5 w-3.5" /> hi@somethingmatters.ca
+                  Register your organization
+                </Button>
+              </Link>
+              <a href="mailto:hi@somethingmatters.ca">
+                <Button variant="ghost" className="rounded-full border border-cream/25 text-cream/60 hover:text-cream hover:bg-cream/10 font-semibold px-8 h-11 text-sm">
+                  <Mail className="mr-2 h-3.5 w-3.5" /> Say hi first
                 </Button>
               </a>
-              <button
-                onClick={() => setShowForm(true)}
-                className="inline-flex items-center rounded-full border border-cream/25 bg-transparent px-8 h-11 text-sm font-semibold hover:bg-cream/10 transition-colors"
-                style={{ color: "var(--cream)" }}
-              >
-                <FileText className="mr-2 h-3.5 w-3.5" /> Submit a task
-              </button>
             </div>
 
             <p className="font-serif text-xs italic text-cream/28 mt-8">

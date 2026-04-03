@@ -1,11 +1,13 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Sparkles, Search, LayoutDashboard, FileText, Building2 } from "lucide-react"
+import { Menu, X, Sparkles, Search, LayoutDashboard, FileText, Building2, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
   { href: "/org/opportunities", label: "My Opportunities", icon: Search },
@@ -16,7 +18,35 @@ const navLinks = [
 
 export default function OrgShellLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { type, org, isLoading, logout } = useAuth()
+
+  function handleLogout() {
+    logout()
+    router.push("/login")
+  }
+
+  useEffect(() => {
+    if (!isLoading && type !== "org") {
+      router.replace("/login")
+    }
+  }, [isLoading, type, router])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-2 border-espresso/20 border-t-espresso animate-spin" />
+      </div>
+    )
+  }
+
+  if (type !== "org") return null
+
+  // Initials from org name
+  const initials = org?.name
+    ? org.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+    : "ORG"
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,12 +76,26 @@ export default function OrgShellLayout({ children }: { children: React.ReactNode
             ))}
           </div>
 
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-2">
             <Link href="/org/profile">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex h-9 w-9 items-center justify-center rounded-full bg-sky/20 text-xs font-bold text-espresso cursor-pointer">
-                NB
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="cursor-pointer">
+                {org?.s3_pfp ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={org.s3_pfp} alt={org.name} className="h-9 w-9 rounded-full object-cover ring-2 ring-transparent hover:ring-sky/40 transition-all" />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky/20 text-xs font-bold text-espresso hover:bg-sky/30 transition-colors">
+                    {initials}
+                  </div>
+                )}
               </motion.div>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-espresso/30 hover:text-espresso hover:bg-latte/50 transition-colors"
+              aria-label="Log out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           <button onClick={() => setMobileOpen(!mobileOpen)} className="flex h-10 w-10 items-center justify-center rounded-xl text-espresso md:hidden" aria-label={mobileOpen ? "Close menu" : "Open menu"}>
@@ -69,12 +113,17 @@ export default function OrgShellLayout({ children }: { children: React.ReactNode
                   <link.icon className="h-5 w-5" /> {link.label}
                 </Link>
               ))}
+              <button
+                onClick={() => { setMobileOpen(false); handleLogout() }}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-semibold text-espresso/40 hover:bg-latte transition-colors"
+              >
+                <LogOut className="h-5 w-5" /> Log Out
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg md:hidden">
         <div className="flex items-center justify-around px-2 py-2">
           {navLinks.map((tab) => {

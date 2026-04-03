@@ -1,13 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Sparkles, Search, LayoutDashboard, FileText, User } from "lucide-react"
+import { Menu, X, Sparkles, Search, LayoutDashboard, FileText, User, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ScaleOnTap } from "@/components/motion-wrapper"
 import { haptic } from "@/lib/haptics"
+import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
   { href: "/opportunities", label: "Browse", icon: Search },
@@ -18,7 +19,19 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { user, logout } = useAuth()
+
+  const initials = user?.name
+    ? user.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+    : "?"
+
+  function handleLogout() {
+    haptic("medium")
+    logout()
+    router.push("/login")
+  }
 
   return (
     <>
@@ -34,9 +47,7 @@ export function Navbar() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-espresso text-cream">
               <Sparkles className="h-4 w-4 transition-transform group-hover:rotate-12" />
             </div>
-            <span className="font-serif font-semibold text-lg text-espresso">
-              Something
-            </span>
+            <span className="font-serif font-semibold text-lg text-espresso">Something</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -48,9 +59,7 @@ export function Navbar() {
                 onClick={() => haptic("selection")}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  pathname === link.href
-                    ? "text-espresso"
-                    : "text-espresso/45 hover:text-espresso"
+                  pathname === link.href ? "text-espresso" : "text-espresso/45 hover:text-espresso"
                 )}
               >
                 {pathname === link.href && (
@@ -65,15 +74,31 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Desktop Avatar */}
-          <div className="hidden md:flex items-center">
+          {/* Desktop: avatar + logout */}
+          <div className="hidden md:flex items-center gap-2">
             <ScaleOnTap>
               <Link href="/profile">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-matcha/20 font-display text-xs tracking-wide text-espresso cursor-pointer hover:bg-matcha/30 transition-colors">
-                  CL
-                </div>
+                {user?.s3_pfp ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.s3_pfp}
+                    alt={user.name}
+                    className="h-8 w-8 rounded-full object-cover cursor-pointer ring-2 ring-transparent hover:ring-matcha/40 transition-all"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-matcha/20 font-display text-xs tracking-wide text-espresso cursor-pointer hover:bg-matcha/30 transition-colors">
+                    {initials}
+                  </div>
+                )}
               </Link>
             </ScaleOnTap>
+            <button
+              onClick={handleLogout}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-espresso/30 hover:text-espresso hover:bg-latte/50 transition-colors"
+              aria-label="Log out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           {/* Mobile Hamburger */}
@@ -114,6 +139,13 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              <button
+                onClick={() => { setMobileOpen(false); handleLogout() }}
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-espresso/40 hover:bg-latte/40 hover:text-espresso transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Log Out
+              </button>
             </div>
           </motion.div>
         )}
