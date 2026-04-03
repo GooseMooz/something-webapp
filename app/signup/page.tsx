@@ -1,28 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Sparkles,
-  Eye,
-  EyeOff,
-  ArrowRight,
-  ArrowLeft,
-  Check,
-  Heart,
-  Leaf,
-  BookOpen,
-  Palette,
-  Users,
-  Brain,
-  Utensils,
-  Shield,
-  MapPin,
-  Smile,
-  Briefcase,
-  Repeat,
+  Sparkles, Eye, EyeOff, ArrowRight, ArrowLeft, Check,
+  Heart, Leaf, BookOpen, Palette, Users, Brain, Utensils,
+  Shield, MapPin, Smile, Briefcase, Repeat,
+  Camera, FileText, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -31,6 +17,9 @@ import { Label } from "@/components/ui/label"
 import { FadeIn, ScaleOnTap } from "@/components/motion-wrapper"
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
+import { authApi, usersApi } from "@/lib/api"
+import { useAuth } from "@/lib/auth-context"
+import { toast } from "sonner"
 
 const causeOptions = [
   { id: "climate", label: "Climate Action", icon: Leaf },
@@ -44,25 +33,15 @@ const causeOptions = [
 ]
 
 const skillOptions = [
-  "Event Planning",
-  "Social Media",
-  "Photography",
-  "Public Speaking",
-  "Coding",
-  "Design",
-  "Writing",
-  "Teaching",
-  "Cooking",
-  "First Aid",
-  "Languages",
-  "Music",
+  "Event Planning", "Social Media", "Photography", "Public Speaking",
+  "Coding", "Design", "Writing", "Teaching", "Cooking", "First Aid",
+  "Languages", "Music",
 ]
 
 const frequencyOptions = [
-  { id: "weekly", label: "Weekly", sub: "I want to make it a habit" },
-  { id: "monthly", label: "Monthly", sub: "Once or twice a month" },
-  { id: "occasionally", label: "Occasionally", sub: "When something comes up" },
-  { id: "unsure", label: "Not sure yet", sub: "I'll figure it out" },
+  { id: "low",    label: "Monthly",   sub: "Once or twice a month" },
+  { id: "medium", label: "Bi-weekly", sub: "A couple times a month" },
+  { id: "high",   label: "Weekly",    sub: "I want to make it a habit" },
 ]
 
 const motivationOptions = [
@@ -76,17 +55,41 @@ const motivationOptions = [
 
 export default function SignupPage() {
   const router = useRouter()
+  const { loginAsUser, setUser, type, isLoading } = useAuth()
+
+  useEffect(() => {
+    if (isLoading) return
+    if (type === "user") router.replace("/opportunities")
+    else if (type === "org") router.replace("/org/opportunities")
+  }, [isLoading, type, router])
+
   const [step, setStep] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
   const [selectedCauses, setSelectedCauses] = useState<string[]>([])
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null)
   const [selectedMotivations, setSelectedMotivations] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
-  const totalSteps = 4
-  const progress = ((step + 1) / totalSteps) * 100
+  // Step 0 form fields
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [bio, setBio] = useState("")
+
+  // Step 4 — uploads (stored after registration completes)
+  const [registrationToken, setRegistrationToken] = useState<string | null>(null)
+  const [registrationUserId, setRegistrationUserId] = useState<string | null>(null)
+  const [pfpFile, setPfpFile] = useState<File | null>(null)
+  const [pfpPreview, setPfpPreview] = useState<string | null>(null)
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const pfpInputRef = useRef<HTMLInputElement>(null)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
+
+  // Progress bar only covers the 4 questionnaire steps (step 4 is post-registration)
+  const QUESTIONNAIRE_STEPS = 4
+  const progress = (Math.min(step, QUESTIONNAIRE_STEPS) / QUESTIONNAIRE_STEPS) * 100
 
   function toggleCause(id: string) {
     haptic("selection")
@@ -101,49 +104,87 @@ export default function SignupPage() {
     setSelectedMotivations((prev) => prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id])
   }
 
-  function handleSocialSignup(provider: "google" | "apple") {
-    haptic("medium")
-    setSocialLoading(provider)
-    setTimeout(() => {
-      haptic("light")
-      setSocialLoading(null)
-      setStep(1)
-    }, 1000)
-  }
-
-  function handleNext() {
-    if (step < totalSteps - 1) {
+  async function handleNext() {
+    if (step < 3) {
       haptic("light")
       setStep(step + 1)
     } else {
+      // Step 3 complete — register, login, update profile, then show upload step
       haptic("success")
-      setIsLoading(true)
-      setTimeout(() => {
-        setIsLoading(false)
-        router.push("/opportunities")
-      }, 1500)
+      setSubmitting(true)
+      try {
+        await authApi.register({ name, email, password })
+        const { token } = await authApi.login({ email, password })
+        await loginAsUser(token)
+        const userId = localStorage.getItem("sth_auth_id")
+        if (userId) {
+          const updated = await usersApi.update(userId, {
+            bio: bio || undefined,
+            skills: selectedSkills,
+            categories: selectedCauses,
+            intensity: selectedFrequency ?? undefined,
+          }, token)
+          setUser(updated)
+          setRegistrationToken(token)
+          setRegistrationUserId(userId)
+        }
+        setStep(4)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Registration failed")
+      } finally {
+        setSubmitting(false)
+      }
     }
   }
 
+  async function handleFinish(skip = false) {
+    if (!skip && (pfpFile || resumeFile) && registrationToken && registrationUserId) {
+      setUploading(true)
+      try {
+        let updated
+        if (pfpFile) updated = await usersApi.uploadPfp(registrationUserId, pfpFile, registrationToken)
+        if (resumeFile) updated = await usersApi.uploadResume(registrationUserId, resumeFile, registrationToken)
+        if (updated) setUser(updated)
+      } catch {
+        toast.error("Upload failed — you can add them from your profile later.")
+      } finally {
+        setUploading(false)
+      }
+    }
+    haptic("success")
+    router.push("/opportunities")
+  }
+
+  function handlePfpChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPfpFile(file)
+    setPfpPreview(URL.createObjectURL(file))
+  }
+
+  function handleResumeChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setResumeFile(file)
+  }
+
   function handleBack() {
-    if (step > 0) { haptic("selection"); setStep(step - 1) }
+    if (step > 0 && step < 4) { haptic("selection"); setStep(step - 1) }
   }
 
   const canProceed =
-    step === 0 ? true
+    step === 0 ? (name.trim().length > 0 && email.trim().length > 0 && password.length >= 6)
     : step === 1 ? selectedSkills.length > 0
     : step === 2 ? selectedCauses.length > 0
     : selectedFrequency !== null
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
-      {/* Background blobs */}
       <div className="pointer-events-none absolute right-[12%] top-[15%] h-48 w-48 rounded-full bg-sky/8 blur-3xl" />
       <div className="pointer-events-none absolute left-[8%] bottom-[15%] h-40 w-40 rounded-full bg-matcha/8 blur-3xl" />
       <div className="pointer-events-none absolute left-[45%] top-[10%] h-32 w-32 rounded-full bg-honey/8 blur-3xl" />
 
       <FadeIn className="w-full max-w-lg">
-        {/* Logo */}
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-espresso text-cream">
             <Sparkles className="h-4 w-4" />
@@ -151,7 +192,6 @@ export default function SignupPage() {
           <span className="font-display text-xl tracking-wide text-espresso">Something</span>
         </Link>
 
-        {/* Progress */}
         <div className="mb-6 flex items-center gap-3">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted/80">
             <motion.div
@@ -162,10 +202,98 @@ export default function SignupPage() {
             />
           </div>
           <span className="font-serif text-xs italic text-espresso/40">
-            {step + 1} of {totalSteps}
+            {step < 4 ? `${step + 1} of 4` : "Almost done"}
           </span>
         </div>
 
+        {step === 4 ? (
+          <motion.div key="upload-card" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
+          <Card className="border-border/60 bg-card shadow-xl shadow-espresso/[0.05]">
+            <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+              <div>
+                <h2 className="font-display text-2xl tracking-wide text-espresso">One last touch</h2>
+                <p className="font-serif mt-1 text-sm italic text-espresso/50">
+                  Add a photo and resume so orgs know who you are. You can always do this later.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-3">
+                <button type="button" onClick={() => pfpInputRef.current?.click()} className="relative group">
+                  <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-dashed border-border/60 bg-latte/40 flex items-center justify-center transition-all group-hover:border-matcha/50 group-hover:bg-matcha/5">
+                    {pfpPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pfpPreview} alt="Preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <Camera className="h-7 w-7 text-espresso/25 group-hover:text-matcha/60 transition-colors" />
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-matcha text-espresso shadow-sm">
+                    <Camera className="h-3.5 w-3.5" />
+                  </div>
+                </button>
+                <p className="text-xs text-espresso/40">PNG, JPG, GIF or WebP</p>
+                {pfpFile && (
+                  <button type="button" onClick={() => { setPfpFile(null); setPfpPreview(null) }} className="flex items-center gap-1 text-xs text-espresso/40 hover:text-destructive transition-colors">
+                    <X className="h-3 w-3" /> Remove
+                  </button>
+                )}
+                <input ref={pfpInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,.webp" className="hidden" onChange={handlePfpChange} />
+              </div>
+
+              <div>
+                <div
+                  onClick={() => resumeInputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => e.key === "Enter" && resumeInputRef.current?.click()}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-xl border-2 border-dashed p-4 transition-all cursor-pointer",
+                    resumeFile ? "border-matcha/40 bg-matcha/5" : "border-border/60 bg-latte/20 hover:border-matcha/30 hover:bg-matcha/5"
+                  )}
+                >
+                  <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg shrink-0", resumeFile ? "bg-matcha/20" : "bg-latte")}>
+                    <FileText className={cn("h-5 w-5", resumeFile ? "text-matcha-dark" : "text-espresso/30")} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {resumeFile ? (
+                      <>
+                        <p className="text-sm font-semibold text-espresso truncate">{resumeFile.name}</p>
+                        <p className="text-xs text-espresso/40">{(resumeFile.size / 1024).toFixed(0)} KB · PDF</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-espresso/60">Upload your resume</p>
+                        <p className="text-xs text-espresso/35">PDF only</p>
+                      </>
+                    )}
+                  </div>
+                  {resumeFile && (
+                    <button type="button" onClick={e => { e.stopPropagation(); setResumeFile(null) }} className="ml-auto text-espresso/30 hover:text-destructive transition-colors shrink-0">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <input ref={resumeInputRef} type="file" accept=".pdf" className="hidden" onChange={handleResumeChange} />
+              </div>
+
+              <div className="flex flex-col items-center gap-3 pt-1">
+                <ScaleOnTap>
+                  <Button onClick={() => handleFinish(false)} disabled={uploading} className="rounded-full bg-matcha px-8 font-semibold text-espresso hover:bg-matcha-dark h-11">
+                    {uploading ? (
+                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-5 w-5 rounded-full border-2 border-espresso/20 border-t-espresso" />
+                    ) : (
+                      <>Finish setup <Sparkles className="ml-1.5 h-4 w-4" /></>
+                    )}
+                  </Button>
+                </ScaleOnTap>
+                <button type="button" onClick={() => handleFinish(true)} disabled={uploading} className="font-serif text-sm italic text-espresso/40 hover:text-espresso/60 transition-colors">
+                  Skip for now →
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+          </motion.div>
+        ) : (
         <Card className="border-border/60 bg-card shadow-xl shadow-espresso/[0.05]">
           <CardContent className="p-6 md:p-8">
             <AnimatePresence mode="wait">
@@ -177,66 +305,19 @@ export default function SignupPage() {
                     <h1 className="font-display text-2xl tracking-wide text-espresso">Join Something</h1>
                     <p className="font-serif mt-1 text-sm italic text-espresso/50">Takes about 3 minutes to set up.</p>
                   </div>
-
-                  {/* Social signup */}
-                  <div className="flex flex-col gap-3">
-                    <button
-                      onClick={() => handleSocialSignup("google")}
-                      disabled={socialLoading !== null}
-                      className="flex w-full items-center justify-center gap-3 rounded-xl border border-border/70 bg-card px-4 py-2.5 text-sm font-medium text-espresso/80 transition-all hover:bg-latte/40 hover:border-border disabled:opacity-60"
-                    >
-                      {socialLoading === "google" ? (
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-espresso/20 border-t-espresso" />
-                      ) : (
-                        <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                      )}
-                      Sign up with Google
-                    </button>
-
-                    <button
-                      onClick={() => handleSocialSignup("apple")}
-                      disabled={socialLoading !== null}
-                      className="flex w-full items-center justify-center gap-3 rounded-xl border border-border/70 bg-card px-4 py-2.5 text-sm font-medium text-espresso/80 transition-all hover:bg-latte/40 hover:border-border disabled:opacity-60"
-                    >
-                      {socialLoading === "apple" ? (
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-espresso/20 border-t-espresso" />
-                      ) : (
-                        <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                        </svg>
-                      )}
-                      Sign up with Apple
-                    </button>
-                  </div>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-border/50" />
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="bg-card px-3 font-serif italic text-espresso/40">or use email</span>
-                    </div>
-                  </div>
-
-                  {/* Email fields */}
                   <div className="flex flex-col gap-3">
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="name" className="text-sm font-medium text-espresso/70">Full Name</Label>
-                      <Input id="name" placeholder="Maya Chen" className="rounded-xl border-border/60 bg-background h-11" />
+                      <Input id="name" placeholder="Maya Chen" value={name} onChange={e => setName(e.target.value)} className="rounded-xl border-border/60 bg-background h-11" />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="signup-email" className="text-sm font-medium text-espresso/70">Email</Label>
-                      <Input id="signup-email" type="email" placeholder="maya@example.com" className="rounded-xl border-border/60 bg-background h-11" />
+                      <Input id="signup-email" type="email" placeholder="maya@example.com" value={email} onChange={e => setEmail(e.target.value)} className="rounded-xl border-border/60 bg-background h-11" />
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="signup-password" className="text-sm font-medium text-espresso/70">Password</Label>
                       <div className="relative">
-                        <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="Create a password" className="rounded-xl border-border/60 bg-background h-11 pr-10" />
+                        <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="At least 6 characters" value={password} onChange={e => setPassword(e.target.value)} className="rounded-xl border-border/60 bg-background h-11 pr-10" />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/40 hover:text-espresso/60" aria-label={showPassword ? "Hide password" : "Show password"}>
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -273,6 +354,8 @@ export default function SignupPage() {
                     <textarea
                       id="bio"
                       rows={3}
+                      value={bio}
+                      onChange={e => setBio(e.target.value)}
                       placeholder="What brings you to Something? What do you hope to get from it?"
                       className="rounded-xl border border-border/60 bg-background px-3 py-2 font-serif text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none resize-none"
                     />
@@ -305,7 +388,7 @@ export default function SignupPage() {
                 </motion.div>
               )}
 
-              {/* ── Step 4: Screening questions ── */}
+              {/* ── Step 4: Screening ── */}
               {step === 3 && (
                 <motion.div key="step-3" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.3 }} className="flex flex-col gap-6">
                   <div>
@@ -315,7 +398,6 @@ export default function SignupPage() {
                     </p>
                   </div>
 
-                  {/* Frequency */}
                   <div className="flex flex-col gap-3">
                     <p className="text-sm font-semibold text-espresso">How often do you want to volunteer?</p>
                     <div className="grid grid-cols-2 gap-2">
@@ -328,7 +410,6 @@ export default function SignupPage() {
                     </div>
                   </div>
 
-                  {/* Motivation */}
                   <div className="flex flex-col gap-3">
                     <p className="text-sm font-semibold text-espresso">
                       What are you hoping to get from volunteering? <span className="font-serif italic text-espresso/35 font-normal">(pick all that apply)</span>
@@ -350,7 +431,6 @@ export default function SignupPage() {
               )}
             </AnimatePresence>
 
-            {/* Navigation */}
             <div className="mt-7 flex items-center justify-between gap-3">
               {step > 0 ? (
                 <Button variant="ghost" onClick={handleBack} className="rounded-full font-medium text-espresso/55 hover:text-espresso">
@@ -363,12 +443,12 @@ export default function SignupPage() {
               <ScaleOnTap>
                 <Button
                   onClick={handleNext}
-                  disabled={!canProceed || isLoading}
+                  disabled={!canProceed || submitting}
                   className="rounded-full bg-matcha px-6 font-semibold text-espresso hover:bg-matcha-dark h-11"
                 >
-                  {isLoading ? (
+                  {submitting ? (
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-5 w-5 rounded-full border-2 border-espresso/20 border-t-espresso" />
-                  ) : step === totalSteps - 1 ? (
+                  ) : step === 3 ? (
                     <>Create Account <Sparkles className="ml-1.5 h-4 w-4" /></>
                   ) : (
                     <>Continue <ArrowRight className="ml-1.5 h-4 w-4" /></>
@@ -387,6 +467,7 @@ export default function SignupPage() {
             )}
           </CardContent>
         </Card>
+        )}
       </FadeIn>
     </div>
   )

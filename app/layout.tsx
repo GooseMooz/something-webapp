@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Lora, DM_Sans } from 'next/font/google'
 import './globals.css'
+import { Providers } from './providers'
 
 const lora = Lora({
   subsets: ['latin'],
@@ -56,7 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lora.variable} ${dmSans.variable} font-sans antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

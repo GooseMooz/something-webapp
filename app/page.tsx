@@ -9,10 +9,8 @@ import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Footer } from "@/components/footer"
-import { haptic } from "@/lib/haptics"
 import {
   FadeIn,
   SlideUp,
@@ -60,6 +58,13 @@ export default function HomePage() {
             </Link>
             <Link href="/for-organizations">
               <Button variant="ghost" className="rounded-full text-sm font-medium text-espresso/55 hover:text-espresso hover:bg-latte/60">For Orgs</Button>
+            </Link>
+            <div className="ml-1 h-4 w-px bg-border/60" />
+            <Link href="/login">
+              <Button variant="ghost" className="rounded-full text-sm font-medium text-espresso/55 hover:text-espresso hover:bg-latte/60">Log in</Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="rounded-full bg-espresso text-cream text-sm font-semibold px-5 h-9 hover:bg-espresso/90">Sign up</Button>
             </Link>
           </div>
         </nav>
@@ -242,8 +247,23 @@ export default function HomePage() {
             </FadeIn>
 
 
+            <FadeIn delay={0.55}>
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/signup">
+                  <Button className="rounded-full bg-espresso text-cream font-semibold px-8 h-11 text-sm hover:bg-espresso/90 shadow-md">
+                    Volunteer now <ArrowRight className="ml-1.5 h-4 w-4 inline" />
+                  </Button>
+                </Link>
+                <Link href="/org/signup">
+                  <Button variant="outline" className="rounded-full border-espresso/20 text-espresso/60 font-semibold px-8 h-11 text-sm hover:bg-latte/50 hover:text-espresso">
+                    I&apos;m an organization
+                  </Button>
+                </Link>
+              </div>
+            </FadeIn>
+
             <FadeIn delay={0.7}>
-              <div className="mt-12 flex items-center gap-3 rounded-full bg-card/85 px-5 py-2.5 shadow-sm backdrop-blur-sm border border-border/40">
+              <div className="mt-8 flex items-center gap-3 rounded-full bg-card/85 px-5 py-2.5 shadow-sm backdrop-blur-sm border border-border/40">
                 <div className="flex -space-x-2">
                   {["bg-matcha/35", "bg-honey/40", "bg-caramel/35", "bg-rose/30", "bg-matcha/25"].map((bg, i) => (
                     <motion.div
@@ -291,9 +311,6 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      <WaitlistSection />
-
-      {/* ── Arrow: waitlist → how it works ── */}
       <div className="relative h-10 overflow-visible">
         <CurvedArrow color="var(--matcha)" className="absolute left-[18%] -top-2" delay={0.2} />
         <CurvedArrow color="var(--honey)" className="absolute right-[22%] -top-1" delay={0.4} flip />
@@ -842,7 +859,18 @@ export default function HomePage() {
                 <p className="font-serif max-w-lg text-base text-cream/55 leading-relaxed md:text-lg text-pretty">
                   Find something worth giving your time to. It might change how you spend your weekends.
                 </p>
-                <FinalCTAForm />
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Link href="/signup">
+                    <Button className="rounded-full bg-honey text-espresso font-semibold px-8 h-11 text-sm hover:bg-honey/90 shadow-md">
+                      Sign up to volunteer <ArrowRight className="ml-1.5 h-4 w-4 inline" />
+                    </Button>
+                  </Link>
+                  <Link href="/org/signup">
+                    <Button variant="ghost" className="rounded-full text-cream/60 hover:text-cream hover:bg-cream/10 font-semibold px-8 h-11 text-sm">
+                      Register an organization
+                    </Button>
+                  </Link>
+                </div>
                 <a href="mailto:hi@somethingmatters.ca">
                   <Button variant="ghost" className="rounded-full text-cream/50 hover:text-cream hover:bg-cream/10 text-sm font-medium">
                     or say hi at hi@somethingmatters.ca
@@ -880,131 +908,6 @@ function MysteryNumber() {
         ???
       </span>
     </span>
-  )
-}
-
-/* ── Waitlist Section ── */
-function WaitlistSection() {
-  const [hovered, setHovered] = React.useState(false)
-  const ref = React.useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: false, amount: 0.5 })
-  const showParticles = hovered || isInView
-
-  const baseParticles = [
-    { color: "var(--honey)",    x: "12%", y: "60%", size: 8, dur: 3.2 },
-    { color: "var(--rose)",     x: "85%", y: "55%", size: 6, dur: 4.1 },
-    { color: "var(--caramel)",  x: "75%", y: "25%", size: 7, dur: 3.6 },
-    { color: "var(--sky)",      x: "28%", y: "80%", size: 5, dur: 2.9 },
-    { color: "var(--honey)",    x: "60%", y: "15%", size: 4, dur: 3.8 },
-  ]
-  const extraParticles = [
-    { color: "var(--rose)",     x: "35%", y: "45%", size: 5,  dur: 2.6 },
-    { color: "var(--caramel)",  x: "55%", y: "70%", size: 6,  dur: 3.4 },
-    { color: "var(--honey)",    x: "90%", y: "35%", size: 4,  dur: 2.8 },
-    { color: "var(--sky)",      x: "8%",  y: "40%", size: 7,  dur: 4.0 },
-    { color: "var(--rose)",     x: "70%", y: "85%", size: 5,  dur: 3.1 },
-    { color: "var(--honey)",    x: "45%", y: "20%", size: 8,  dur: 2.5 },
-    { color: "var(--caramel)",  x: "18%", y: "30%", size: 4,  dur: 3.7 },
-    { color: "var(--rose)",     x: "80%", y: "65%", size: 6,  dur: 2.9 },
-  ]
-
-  return (
-    <section
-      ref={ref}
-      className="relative border-y border-border/40 overflow-hidden px-4 py-12 md:py-16"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Warm background — no green */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cream/90 via-latte/60 to-honey/20" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tl from-rose/8 via-transparent to-sky/8" />
-      {/* Ambient blobs */}
-      <div className="pointer-events-none absolute left-[5%] top-[20%] h-32 w-32 rounded-full bg-honey/18 blur-3xl" />
-      <div className="pointer-events-none absolute right-[8%] bottom-[15%] h-28 w-28 rounded-full bg-rose/15 blur-3xl" />
-      <div className="pointer-events-none absolute left-[40%] bottom-[10%] h-20 w-20 rounded-full bg-sky/12 blur-2xl" />
-
-      {/* Floating asterisks */}
-      <motion.div className="pointer-events-none absolute left-[6%] top-[25%] opacity-50"
-        animate={{ rotate: 360 }} transition={{ duration: 14, repeat: Infinity, ease: "linear" }}>
-        <Asterisk size={22} color="var(--honey)" />
-      </motion.div>
-      <motion.div className="pointer-events-none absolute right-[7%] top-[30%] opacity-45"
-        animate={{ rotate: -360, y: [0, -6, 0] }}
-        transition={{ rotate: { duration: 10, repeat: Infinity, ease: "linear" }, y: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}>
-        <Asterisk size={18} color="var(--rose)" />
-      </motion.div>
-      <motion.div className="pointer-events-none absolute right-[18%] bottom-[20%] opacity-40"
-        animate={{ rotate: 360 }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }}>
-        <Asterisk size={14} color="var(--caramel)" />
-      </motion.div>
-      <motion.div className="pointer-events-none absolute left-[20%] bottom-[15%] opacity-40"
-        animate={{ y: [0, -5, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}>
-        <Asterisk size={12} color="var(--honey)" />
-      </motion.div>
-
-      {/* Base particles */}
-      {baseParticles.map((dot, i) => (
-        <motion.div key={i} className="pointer-events-none absolute rounded-full opacity-55"
-          style={{ left: dot.x, top: dot.y, width: dot.size, height: dot.size, backgroundColor: dot.color }}
-          animate={{ y: [0, -8, 0] }} transition={{ duration: dot.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
-        />
-      ))}
-
-      {/* Extra particles on hover / scroll-into-view */}
-      <AnimatePresence>
-        {showParticles && extraParticles.map((dot, i) => (
-          <motion.div
-            key={`extra-${i}`}
-            className="pointer-events-none absolute rounded-full"
-            style={{ left: dot.x, top: dot.y, width: dot.size, height: dot.size, backgroundColor: dot.color }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.5, scale: 1, y: [0, -10, 0] }}
-            exit={{ opacity: 0, scale: 0 }}
-            transition={{
-              opacity: { duration: 0.4, delay: i * 0.05 },
-              scale: { duration: 0.4, delay: i * 0.05 },
-              y: { duration: dot.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.12 },
-            }}
-          />
-        ))}
-      </AnimatePresence>
-
-      <div className="relative z-10 mx-auto max-w-xl text-center">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }}
-          viewport={{ once: true }} transition={{ duration: 0.5 }}>
-          <Badge className="mb-4 rounded-full border-honey/40 bg-honey/20 px-4 py-1.5 text-xs font-semibold text-espresso/70">
-            ✦ Early Access
-          </Badge>
-        </motion.div>
-        <SlideUp>
-          <h2 className="font-display text-2xl tracking-wide text-espresso mb-2 md:text-3xl">
-            Be{" "}
-            <motion.span
-              style={{ display: "inline-block" }}
-              animate={{
-                skewX: [0, -15, 4, -8, 0],
-                x: [0, 3, -1, 1, 0],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                repeatDelay: 2,
-                times: [0, 0.25, 0.5, 0.68, 1],
-                ease: "easeInOut",
-              }}
-            >
-              first
-            </motion.span>
-            {" "}in line
-          </h2>
-          <p className="font-serif text-sm italic text-espresso/55 mb-6 leading-relaxed">
-            We&apos;re still in pilot mode — join the waitlist and help shape what comes next.
-          </p>
-          <HeroWaitlistForm />
-        </SlideUp>
-      </div>
-    </section>
   )
 }
 
@@ -1267,17 +1170,25 @@ function ApathyOverlay({ hovered }: { hovered: boolean }) {
   )
 }
 
+function hexPath(r: number): string {
+  const pts = Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 3) * i - Math.PI / 6
+    return `${r + r * Math.cos(a)} ${r + r * Math.sin(a)}`
+  })
+  return `M ${pts.join(" L ")} Z`
+}
+
+// Pre-compute hex paths for each size used in HiveOverlay so SSR and client
+// always produce the exact same string (avoids hydration mismatch from
+// floating-point differences between Node.js and the browser).
+const HEX_PATHS: Record<number, string> = Object.fromEntries(
+  [16, 18, 20, 22, 24].map(s => [s, hexPath(s / 2)])
+)
+
 function HiveOverlay({ hovered }: { hovered: boolean }) {
   // Hexagon confetti: each piece springs up then falls with gravity.
   // Uses motion.div so CSS transforms work cleanly (no SVG transform-origin issues).
   // The parent div has inset: -28 and overflow: visible.
-  const hexPath = (r: number) => {
-    const pts = Array.from({ length: 6 }, (_, i) => {
-      const a = (Math.PI / 3) * i - Math.PI / 6
-      return `${r + r * Math.cos(a)} ${r + r * Math.sin(a)}`
-    })
-    return `M ${pts.join(" L ")} Z`
-  }
   const pieces = [
     { left: "13%",  top: "27%",  size: 20, color: "var(--matcha)",  delay: 0.00 },
     { left: "30%",  top: "15%",  size: 16, color: "var(--honey)",   delay: 0.09 },
@@ -1318,7 +1229,7 @@ function HiveOverlay({ hovered }: { hovered: boolean }) {
           }}
         >
           <svg width={p.size} height={p.size} viewBox={`0 0 ${p.size} ${p.size}`} style={{ overflow: "visible" }}>
-            <path d={hexPath(p.size / 2)} fill={p.color} strokeWidth="0" />
+            <path d={HEX_PATHS[p.size]} fill={p.color} strokeWidth="0" />
           </svg>
         </motion.div>
       ))}
@@ -1514,179 +1425,6 @@ function FeaturedCard({ opportunity, index }: { opportunity: (typeof mockOpportu
   )
 }
 
-/* ── Hero Waitlist Form ── */
-function HeroWaitlistForm() {
-  const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle")
-  const [burst, setBurst] = React.useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-    haptic("medium")
-    setBurst(true)
-    setTimeout(() => setBurst(false), 700)
-    setStatus("loading")
-    try {
-      const res = await fetch("/api/waitlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
-      if (res.ok) { const data = await res.json(); haptic("success"); setStatus(data.message === "Already on waitlist" ? "duplicate" : "success"); setEmail("") } else { haptic("error"); setStatus("error") }
-    } catch { haptic("error"); setStatus("error") }
-  }
-
-  if (status === "success") {
-    return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-matcha-dark">
-        <CheckCircle2 className="h-4 w-4" /> You&apos;re on the list! We&apos;ll be in touch.
-      </motion.div>
-    )
-  }
-  if (status === "duplicate") {
-    return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-espresso/50">
-        <CheckCircle2 className="h-4 w-4" /> You&apos;re already on the list!
-      </motion.div>
-    )
-  }
-  return (
-    <>
-      <style>{`
-        @keyframes gradient-flow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        .waitlist-btn-active {
-          background: linear-gradient(135deg, var(--matcha), var(--honey), var(--caramel), var(--rose), var(--sky), var(--matcha));
-          background-size: 300% 300%;
-          animation: gradient-flow 2s ease infinite;
-        }
-        .waitlist-btn-idle {
-          background: var(--matcha);
-        }
-      `}</style>
-      <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
-        <Input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 rounded-full border-border/60 bg-card/80 text-sm h-11" disabled={status === "loading"} />
-        <WaitlistBurstButton burst={burst}>
-          <motion.div
-            whileTap={{ scale: 0.80, rotate: [-5, 5, -3, 0] }}
-            transition={{ type: "spring", stiffness: 600, damping: 10 }}
-          >
-            <Button
-              type="submit"
-              disabled={status === "loading" || !email}
-              className={cn(
-                "rounded-full font-semibold text-sm px-6 h-11 text-espresso border-0 shadow-md transition-all duration-500",
-                email ? "waitlist-btn-active" : "waitlist-btn-idle"
-              )}
-            >
-              {status === "loading"
-                ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-espresso/20 border-t-espresso" />
-                : "Join waitlist ✦"}
-            </Button>
-          </motion.div>
-        </WaitlistBurstButton>
-      </form>
-    </>
-  )
-}
-
-/* ── Final CTA Waitlist Form ── */
-function FinalCTAForm() {
-  const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle")
-  const [burst, setBurst] = React.useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-    haptic("medium")
-    setBurst(true)
-    setTimeout(() => setBurst(false), 700)
-    setStatus("loading")
-    try {
-      const res = await fetch("/api/waitlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
-      if (res.ok) { const data = await res.json(); haptic("success"); setStatus(data.message === "Already on waitlist" ? "duplicate" : "success"); setEmail("") } else { haptic("error"); setStatus("error") }
-    } catch { haptic("error"); setStatus("error") }
-  }
-
-  if (status === "success") {
-    return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-cream/70">
-        <CheckCircle2 className="h-4 w-4 text-matcha" /> You&apos;re on the list! We&apos;ll be in touch.
-      </motion.div>
-    )
-  }
-  if (status === "duplicate") {
-    return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-2 font-serif italic text-sm text-cream/50">
-        <CheckCircle2 className="h-4 w-4 text-matcha" /> You&apos;re already on the list!
-      </motion.div>
-    )
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-sm">
-      <Input
-        type="email"
-        placeholder="your@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-full border-cream/20 bg-cream/10 text-cream placeholder:text-cream/35 text-sm h-11 focus-visible:ring-matcha/50"
-        disabled={status === "loading"}
-      />
-      <WaitlistBurstButton burst={burst}>
-        <motion.div whileTap={{ scale: 0.80, rotate: [-5, 5, -3, 0] }} transition={{ type: "spring", stiffness: 600, damping: 10 }}>
-          <Button
-            type="submit"
-            disabled={status === "loading" || !email}
-            className="rounded-full font-semibold text-sm px-6 h-11 text-espresso border-0 bg-matcha hover:bg-matcha-dark shadow-md"
-          >
-            {status === "loading"
-              ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-espresso/20 border-t-espresso" />
-              : "Join waitlist ✦"}
-          </Button>
-        </motion.div>
-      </WaitlistBurstButton>
-    </form>
-  )
-}
-
-/* ── Waitlist click burst — particles generated client-side only to avoid hydration mismatch ── */
-function WaitlistBurstButton({ children, burst }: { children: React.ReactNode; burst: boolean }) {
-  const [particles, setParticles] = React.useState<
-    { id: number; angle: number; distance: number; color: string; size: number }[]
-  >([])
-
-  React.useEffect(() => {
-    setParticles(Array.from({ length: 16 }, (_, i) => ({
-      id: i,
-      angle: (360 / 16) * i + (Math.random() * 14 - 7),
-      distance: 28 + Math.random() * 38,
-      color: ["var(--matcha)", "var(--honey)", "var(--rose)", "var(--caramel)", "var(--sky)"][i % 5],
-      size: 3 + Math.random() * 4,
-    })))
-  }, [])
-
-  return (
-    <div className="relative inline-flex">
-      {particles.map(p => {
-        const rad = (p.angle * Math.PI) / 180
-        return (
-          <motion.div
-            key={p.id}
-            className="pointer-events-none absolute rounded-full"
-            style={{ width: p.size, height: p.size, backgroundColor: p.color, top: "50%", left: "50%", marginTop: -p.size / 2, marginLeft: -p.size / 2, zIndex: burst ? 20 : -1 }}
-            animate={burst
-              ? { x: Math.cos(rad) * p.distance, y: Math.sin(rad) * p.distance, scale: [0, 1.6, 0], opacity: [0, 1, 0] }
-              : { x: 0, y: 0, scale: 0, opacity: 0 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-          />
-        )
-      })}
-      {children}
-    </div>
-  )
-}
 
 /* ── Feedback Form (used inside MailFeedback modal) ── */
 function FeedbackForm() {
