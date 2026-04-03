@@ -52,14 +52,14 @@ export default function HomePage() {
             </div>
             <span className="font-serif font-semibold text-lg text-espresso">Something</span>
           </Link>
-          <div className="hidden items-center gap-1 sm:flex">
-            <Link href="/our-story">
+          <div className="flex items-center gap-1">
+            <Link href="/our-story" className="hidden sm:block">
               <Button variant="ghost" className="rounded-full text-sm font-medium text-espresso/55 hover:text-espresso hover:bg-latte/60">Our Story</Button>
             </Link>
-            <Link href="/for-organizations">
+            <Link href="/for-organizations" className="hidden sm:block">
               <Button variant="ghost" className="rounded-full text-sm font-medium text-espresso/55 hover:text-espresso hover:bg-latte/60">For Orgs</Button>
             </Link>
-            <div className="ml-1 h-4 w-px bg-border/60" />
+            <div className="hidden sm:block ml-1 h-4 w-px bg-border/60" />
             <Link href="/login">
               <Button variant="ghost" className="rounded-full text-sm font-medium text-espresso/55 hover:text-espresso hover:bg-latte/60">Log in</Button>
             </Link>

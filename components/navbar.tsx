@@ -2,9 +2,8 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, Sparkles, Search, LayoutDashboard, FileText, User, LogOut } from "lucide-react"
+import { motion } from "framer-motion"
+import { Sparkles, Search, LayoutDashboard, FileText, User, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ScaleOnTap } from "@/components/motion-wrapper"
 import { haptic } from "@/lib/haptics"
@@ -20,7 +19,6 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [mobileOpen, setMobileOpen] = useState(false)
   const { user, logout } = useAuth()
 
   const initials = user?.name
@@ -34,8 +32,7 @@ export function Navbar() {
   }
 
   return (
-    <>
-      <motion.header
+    <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -101,55 +98,26 @@ export function Navbar() {
             </button>
           </div>
 
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => { setMobileOpen(!mobileOpen); haptic("light") }}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-espresso/70 hover:text-espresso hover:bg-latte/50 transition-colors md:hidden"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {/* Mobile: avatar only */}
+          <div className="flex md:hidden items-center">
+            <ScaleOnTap>
+              <Link href="/profile">
+                {user?.s3_pfp ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.s3_pfp}
+                    alt={user.name}
+                    className="h-8 w-8 rounded-full object-cover cursor-pointer ring-2 ring-transparent hover:ring-matcha/40 transition-all"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-matcha/20 font-display text-xs tracking-wide text-espresso cursor-pointer hover:bg-matcha/30 transition-colors">
+                    {initials}
+                  </div>
+                )}
+              </Link>
+            </ScaleOnTap>
+          </div>
         </nav>
-      </motion.header>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-x-0 top-[57px] z-40 border-b border-border/50 bg-card/95 backdrop-blur-xl p-3 md:hidden"
-          >
-            <div className="flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => { setMobileOpen(false); haptic("selection") }}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
-                    pathname === link.href
-                      ? "bg-latte/70 text-espresso"
-                      : "text-espresso/50 hover:bg-latte/40 hover:text-espresso"
-                  )}
-                >
-                  <link.icon className="h-4 w-4" />
-                  {link.label}
-                </Link>
-              ))}
-              <button
-                onClick={() => { setMobileOpen(false); handleLogout() }}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-espresso/40 hover:bg-latte/40 hover:text-espresso transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                Log Out
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    </motion.header>
   )
 }

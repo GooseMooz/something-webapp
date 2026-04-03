@@ -56,6 +56,13 @@ export function ImageCropModal({ src, fileName, mimeType, onConfirm, onCancel }:
   }
 
   async function handleConfirm() {
+    if (mimeType === "image/gif") {
+      const res = await fetch(src)
+      const blob = await res.blob()
+      onConfirm(new File([blob], fileName, { type: "image/gif" }))
+      return
+    }
+
     const canvas = document.createElement("canvas")
     canvas.width = OUTPUT_SIZE
     canvas.height = OUTPUT_SIZE
@@ -72,13 +79,11 @@ export function ImageCropModal({ src, fileName, mimeType, onConfirm, onCancel }:
     const cropH = PREVIEW_SIZE / scale
     ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE)
 
-    const outputMime = mimeType === "image/gif" ? "image/gif" : "image/jpeg"
-    const outputExt = outputMime === "image/gif" ? ".gif" : ".jpg"
     canvas.toBlob(blob => {
       if (!blob) return
-      const file = new File([blob], fileName.replace(/\.[^.]+$/, outputExt), { type: outputMime })
+      const file = new File([blob], fileName.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" })
       onConfirm(file)
-    }, outputMime, 0.92)
+    }, "image/jpeg", 0.92)
   }
 
   return (

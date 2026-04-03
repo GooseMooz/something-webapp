@@ -33,9 +33,17 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-const STORAGE_TOKEN = "sth_auth_token"
-const STORAGE_TYPE  = "sth_auth_type"
-const STORAGE_ID    = "sth_auth_id"
+const STORAGE_TOKEN    = "sth_auth_token"
+const STORAGE_TYPE     = "sth_auth_type"
+const STORAGE_ID       = "sth_auth_id"
+const pfpBustKey = (id: string) => `sth_pfp_bust_${id}`
+
+function withPfpBust(user: ApiUser, userId: string): ApiUser {
+  if (!user.s3_pfp) return user
+  const bust = localStorage.getItem(pfpBustKey(userId))
+  if (!bust) return user
+  return { ...user, s3_pfp: `${user.s3_pfp.split("?")[0]}?v=${bust}` }
+}
 
 // Refresh the access token this many ms before it expires.
 const REFRESH_BUFFER_MS = 2 * 60 * 1000
@@ -127,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         if (storedType === "user") {
           const user = await usersApi.get(storedUserId, token!)
-          setState((s) => ({ ...s, user }))
+          setState((s) => ({ ...s, user: withPfpBust(user, storedUserId) }))
         } else {
           const org = await orgsApi.get(storedUserId, token!)
           setState((s) => ({ ...s, org }))
@@ -154,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_ID, id)
 
     const user = await usersApi.get(id, token)
-    setState({ token, type: "user", userId: id, user, org: null })
+    setState({ token, type: "user", userId: id, user: withPfpBust(user, id), org: null })
     scheduleRefresh(token, "user", id)
   }, [scheduleRefresh])
 
@@ -184,7 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async () => {
     if (!state.token || !state.userId || state.type !== "user") return
     const user = await usersApi.get(state.userId, state.token)
-    setState((s) => ({ ...s, user }))
+    setState((s) => ({ ...s, user: withPfpBust(user, state.userId!) }))
   }, [state.token, state.userId, state.type])
 
   const refreshOrg = useCallback(async () => {
@@ -194,7 +202,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [state.userId, state.type, state.token])
 
   const setUser = useCallback((user: ApiUser) => {
-    setState((s) => ({ ...s, user }))
+    setState((s) => {
+      if (user.s3_pfp && s.userId) {
+        const bust = Date.now().toString()
+        localStorage.setItem(pfpBustKey(s.userId), bust)
+        user = { ...user, s3_pfp: `${user.s3_pfp!.split("?")[0]}?v=${bust}` }
+      }
+      return { ...s, user }
+    })
   }, [])
 
   const setOrg = useCallback((org: ApiOrg) => {
