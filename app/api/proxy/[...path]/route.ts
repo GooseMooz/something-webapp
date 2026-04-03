@@ -1,16 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const BACKEND_URL = process.env.BACKEND_URL
-
-if (!BACKEND_URL) {
-  throw new Error("BACKEND_URL environment variable is not set")
-}
-
 const SKIP_REQ_HEADERS = new Set(["host", "connection", "transfer-encoding"])
 
 const SKIP_RES_HEADERS = new Set(["connection", "transfer-encoding", "content-encoding", "content-length"])
 
 async function proxy(req: NextRequest, params: { path: string[] }) {
+  const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:3010"
+
   const { path } = params
   const url = new URL(req.url)
   const target = `${BACKEND_URL}/${path.join("/")}${url.search}`
