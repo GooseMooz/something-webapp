@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Sparkles, Eye, EyeOff, ArrowRight, ArrowLeft, Check,
   Heart, Leaf, BookOpen, Palette, Users, Brain, Utensils,
-  Shield,
+  Shield, Building2, User,
   Camera, FileText, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -55,6 +55,7 @@ export default function SignupPage() {
     else if (type === "org") router.replace("/org/opportunities")
   }, [isLoading, type, router])
 
+  const [accountType, setAccountType] = useState<"user" | "org" | null>(null)
   const [step, setStep] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
   const [selectedCauses, setSelectedCauses] = useState<string[]>([])
@@ -179,6 +180,52 @@ export default function SignupPage() {
           </div>
           <span className="font-display text-xl tracking-wide text-espresso">Something</span>
         </Link>
+
+        {accountType === null ? (
+          <motion.div key="choose" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <Card className="border-border/60 bg-card shadow-xl shadow-espresso/[0.05]">
+              <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+                <div>
+                  <h1 className="font-display text-2xl tracking-wide text-espresso">Join Something</h1>
+                  <p className="font-serif mt-1 text-sm italic text-espresso/50">Are you volunteering or posting opportunities?</p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => { haptic("selection"); setAccountType("user") }}
+                    className="flex items-center gap-4 rounded-2xl border-2 border-border/60 p-4 text-left transition-all hover:border-matcha/50 hover:bg-matcha/5"
+                  >
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-matcha/15 text-matcha-dark shrink-0">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-espresso">I'm a volunteer</p>
+                      <p className="font-serif text-xs italic text-espresso/45 mt-0.5">Find opportunities and track your impact</p>
+                    </div>
+                    <ArrowRight className="ml-auto h-4 w-4 text-espresso/25 shrink-0" />
+                  </button>
+                  <button
+                    onClick={() => { haptic("selection"); router.push("/org/signup") }}
+                    className="flex items-center gap-4 rounded-2xl border-2 border-border/60 p-4 text-left transition-all hover:border-sky/50 hover:bg-sky/5"
+                  >
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky/15 text-sky-dark shrink-0">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-espresso">I'm an organization</p>
+                      <p className="font-serif text-xs italic text-espresso/45 mt-0.5">Post opportunities and manage volunteers</p>
+                    </div>
+                    <ArrowRight className="ml-auto h-4 w-4 text-espresso/25 shrink-0" />
+                  </button>
+                </div>
+                <p className="text-center font-serif text-sm italic text-espresso/50">
+                  Already have an account?{" "}
+                  <Link href="/login" className="font-semibold not-italic text-matcha-dark hover:underline">Log in</Link>
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
+        <>
 
         <div className="mb-6 flex items-center gap-3">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted/80">
@@ -438,6 +485,8 @@ export default function SignupPage() {
             )}
           </CardContent>
         </Card>
+        )}
+        </>
         )}
       </FadeIn>
     </div>
