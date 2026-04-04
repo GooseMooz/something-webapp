@@ -98,8 +98,8 @@ export function Navbar() {
             </button>
           </div>
 
-          {/* Mobile: avatar only */}
-          <div className="flex md:hidden items-center">
+          {/* Mobile: avatar + logout */}
+          <div className="flex md:hidden items-center gap-1.5">
             <ScaleOnTap>
               <Link href="/profile">
                 {user?.s3_pfp ? (
@@ -116,6 +116,13 @@ export function Navbar() {
                 )}
               </Link>
             </ScaleOnTap>
+            <button
+              onClick={handleLogout}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-espresso/30 hover:text-espresso hover:bg-latte/50 transition-colors"
+              aria-label="Log out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
           </div>
         </nav>
     </motion.header>
