@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Sparkles, Eye, EyeOff, ArrowRight, ArrowLeft, Check,
-  Building2, Leaf, Landmark, UtensilsCrossed, Globe, Phone, MapPin,
+  Building2, Leaf, Landmark, UtensilsCrossed, Globe, Phone, MapPin, Camera, X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -42,6 +42,14 @@ export default function OrgSignupPage() {
   const [website, setWebsite] = useState("")
   const [location, setLocation] = useState("")
 
+  // Step 3 — pfp upload (post-registration)
+  const [registrationToken, setRegistrationToken] = useState<string | null>(null)
+  const [registrationOrgId, setRegistrationOrgId] = useState<string | null>(null)
+  const [pfpFile, setPfpFile] = useState<File | null>(null)
+  const [pfpPreview, setPfpPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const pfpInputRef = useRef<HTMLInputElement>(null)
+
   const totalSteps = 3
   const progress = ((step + 1) / totalSteps) * 100
 
@@ -72,8 +80,10 @@ export default function OrgSignupPage() {
             categories: selectedType ? [selectedType] : undefined,
           }, token)
           setOrg(updatedOrg)
+          setRegistrationToken(token)
+          setRegistrationOrgId(orgId)
         }
-        router.push("/org/dashboard")
+        setStep(3)
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Registration failed")
         setIsLoading(false)
@@ -81,8 +91,31 @@ export default function OrgSignupPage() {
     }
   }
 
+  async function handleFinish(skip = false) {
+    if (!skip && pfpFile && registrationToken && registrationOrgId) {
+      setUploading(true)
+      try {
+        const updated = await orgsApi.uploadPfp(registrationOrgId, pfpFile, registrationToken)
+        setOrg(updated)
+      } catch {
+        toast.error("Upload failed — you can add it from your profile later.")
+      } finally {
+        setUploading(false)
+      }
+    }
+    router.push("/org/dashboard")
+  }
+
+  function handlePfpChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPfpFile(file)
+    setPfpPreview(URL.createObjectURL(file))
+    e.target.value = ""
+  }
+
   function handleBack() {
-    if (step > 0) setStep(step - 1)
+    if (step > 0 && step < 3) setStep(step - 1)
   }
 
   const canProceed =
@@ -103,18 +136,68 @@ export default function OrgSignupPage() {
           <span className="text-2xl font-extrabold text-espresso">Something</span>
         </Link>
 
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-            <motion.div
-              className="h-full rounded-full bg-sky"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            />
+        {step < 3 && (
+          <div className="mb-6 flex items-center gap-3">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+              <motion.div
+                className="h-full rounded-full bg-sky"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              />
+            </div>
+            <span className="text-xs font-bold text-espresso/40">{step + 1}/{totalSteps}</span>
           </div>
-          <span className="text-xs font-bold text-espresso/40">{step + 1}/{totalSteps}</span>
-        </div>
+        )}
 
+        {step === 3 ? (
+          <motion.div key="upload-card" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
+            <Card className="border-border/60 bg-card shadow-xl shadow-espresso/5">
+              <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+                <div>
+                  <h2 className="text-2xl font-extrabold text-espresso">One last touch</h2>
+                  <p className="mt-1 text-sm text-espresso/50">Add a logo so volunteers know who you are. You can always do this later.</p>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                  <button type="button" onClick={() => pfpInputRef.current?.click()} className="relative group">
+                    <div className="h-24 w-24 rounded-2xl overflow-hidden border-2 border-dashed border-border/60 bg-latte/40 flex items-center justify-center transition-all group-hover:border-sky/50 group-hover:bg-sky/5">
+                      {pfpPreview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={pfpPreview} alt="Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <Camera className="h-7 w-7 text-espresso/25 group-hover:text-sky/60 transition-colors" />
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-sky text-espresso shadow-sm">
+                      <Camera className="h-3.5 w-3.5" />
+                    </div>
+                  </button>
+                  <p className="text-xs text-espresso/40">PNG, JPG, GIF or WebP</p>
+                  {pfpFile && (
+                    <button type="button" onClick={() => { setPfpFile(null); setPfpPreview(null) }} className="flex items-center gap-1 text-xs text-espresso/40 hover:text-destructive transition-colors">
+                      <X className="h-3 w-3" /> Remove
+                    </button>
+                  )}
+                  <input ref={pfpInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,.webp" className="hidden" onChange={handlePfpChange} />
+                </div>
+                <div className="flex flex-col items-center gap-3 pt-1">
+                  <ScaleOnTap>
+                    <Button onClick={() => handleFinish(false)} disabled={uploading} className="rounded-full bg-sky px-8 font-bold text-espresso hover:bg-sky-dark h-11">
+                      {uploading ? (
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-5 w-5 rounded-full border-2 border-espresso/20 border-t-espresso" />
+                      ) : (
+                        <>Finish setup <Sparkles className="ml-1.5 h-4 w-4" /></>
+                      )}
+                    </Button>
+                  </ScaleOnTap>
+                  <button type="button" onClick={() => handleFinish(true)} disabled={uploading} className="text-sm text-espresso/40 hover:text-espresso/60 transition-colors">
+                    Skip for now →
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
         <Card className="border-border/60 bg-card shadow-xl shadow-espresso/5">
           <CardContent className="p-6 md:p-8">
             <AnimatePresence mode="wait">
@@ -251,6 +334,7 @@ export default function OrgSignupPage() {
             )}
           </CardContent>
         </Card>
+        )}
       </FadeIn>
     </div>
   )
