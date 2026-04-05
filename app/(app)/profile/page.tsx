@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Award, Clock, CheckCircle2, Flame, Edit3,
-  Share2, Heart, Sparkles, X, Upload, FileText, Save,
+  Share2, Heart, Sparkles, X, Upload, FileText, Save, Lock, Eye, EyeOff,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -34,9 +35,16 @@ function Asterisk({ size = 20, color = "currentColor", className = "" }: { size?
 }
 
 export default function ProfilePage() {
-  const { user, token, userId, setUser } = useAuth()
+  const { user, token, userId, setUser, logout } = useAuth()
+  const router = useRouter()
   const [editOpen, setEditOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [showCurrentPw, setShowCurrentPw] = useState(false)
+  const [showNewPw, setShowNewPw] = useState(false)
   const [uploadingPfp, setUploadingPfp] = useState(false)
   const [localPfpUrl, setLocalPfpUrl] = useState<string | null>(null)
   const [uploadingResume, setUploadingResume] = useState(false)
@@ -143,6 +151,39 @@ export default function ProfilePage() {
     } finally {
       setUploadingResume(false)
       e.target.value = ""
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match")
+      return
+    }
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters")
+      return
+    }
+    if (!token || !userId) return
+    setChangingPassword(true)
+    try {
+      const res = await fetch(`/api/proxy/users/${userId}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to change password")
+      }
+      toast.success("Password updated — please sign in again")
+      logout()
+      router.push("/login")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to change password")
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -403,6 +444,73 @@ export default function ProfilePage() {
                 })}
               </StaggerChildren>
             )}
+          </CardContent>
+        </Card>
+      </FadeIn>
+
+      {/* Change Password */}
+      <FadeIn>
+        <Card className={cn(cardClass, "mt-4")}>
+          <CardContent className="p-5">
+            <h3 className="text-sm font-bold text-espresso mb-4 flex items-center gap-1.5">
+              <Lock className="h-4 w-4 text-espresso/40" />Change Password
+            </h3>
+            <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-espresso/50">Current Password</Label>
+                <div className="relative">
+                  <Input
+                    type={showCurrentPw ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={e => setCurrentPassword(e.target.value)}
+                    placeholder="Your current password"
+                    className="rounded-xl h-10 text-sm pr-10"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowCurrentPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/30 hover:text-espresso/60">
+                    {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-espresso/50">New Password</Label>
+                <div className="relative">
+                  <Input
+                    type={showNewPw ? "text" : "password"}
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    className="rounded-xl h-10 text-sm pr-10"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowNewPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/30 hover:text-espresso/60">
+                    {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-espresso/50">Confirm New Password</Label>
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new password"
+                  className="rounded-xl h-10 text-sm"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+                className="rounded-full bg-espresso text-card hover:bg-espresso/90 font-bold text-sm h-10 mt-1 self-start px-6"
+              >
+                {changingPassword ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-4 w-4 rounded-full border-2 border-card/20 border-t-card" />
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </FadeIn>
