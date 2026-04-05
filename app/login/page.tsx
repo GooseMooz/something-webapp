@@ -170,11 +170,9 @@ export default function LoginPage() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-sm font-medium text-espresso/70">Password</Label>
-                  {role === "youth" && (
-                    <Link href="/forgot-password" className="font-serif text-xs italic text-espresso/40 hover:text-espresso/70 transition-colors">
-                      Forgot password?
-                    </Link>
-                  )}
+                  <Link href="/forgot-password" className="font-serif text-xs italic text-espresso/40 hover:text-espresso/70 transition-colors">
+                    Forgot password?
+                  </Link>
                 </div>
                 <div className="relative">
                   <Input
