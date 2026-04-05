@@ -69,7 +69,9 @@ export default function LoginPage() {
       }
     } catch (err) {
       haptic("error" as never)
-      toast.error(err instanceof Error ? err.message : "Login failed")
+      const msg = err instanceof Error ? err.message : ""
+      const isCredentialError = /401|unauthorized|invalid|incorrect|password|credentials/i.test(msg)
+      toast.error(isCredentialError ? "Incorrect email or password" : "Something went wrong — please try again")
     } finally {
       setSubmitting(false)
     }
@@ -168,6 +170,11 @@ export default function LoginPage() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-sm font-medium text-espresso/70">Password</Label>
+                  {role === "youth" && (
+                    <Link href="/forgot-password" className="font-serif text-xs italic text-espresso/40 hover:text-espresso/70 transition-colors">
+                      Forgot password?
+                    </Link>
+                  )}
                 </div>
                 <div className="relative">
                   <Input

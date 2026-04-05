@@ -19,14 +19,19 @@ async function proxy(req: NextRequest, params: { path: string[] }) {
   })
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD"
+  const body = hasBody ? await req.arrayBuffer() : undefined
 
-  const response = await fetch(target, {
-    method: req.method,
-    headers,
-    body: hasBody ? req.body : undefined,
-    // @ts-expect-error — Node 18+ supports this, prevents buffering
-    duplex: "half",
-  })
+  let response: Response
+  try {
+    response = await fetch(target, {
+      method: req.method,
+      headers,
+      body: body && body.byteLength > 0 ? body : undefined,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Backend unreachable"
+    return NextResponse.json({ error: message }, { status: 502 })
+  }
 
   const responseHeaders = new Headers()
 

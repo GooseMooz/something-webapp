@@ -68,6 +68,8 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [bio, setBio] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
   // Step 4 — uploads (stored after registration completes)
   const [registrationToken, setRegistrationToken] = useState<string | null>(null)
@@ -161,8 +163,11 @@ export default function SignupPage() {
     if (step > 0 && step < 4) { haptic("selection"); setStep(step - 1) }
   }
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())
+  const passwordValid = password.length >= 8
+
   const canProceed =
-    step === 0 ? (name.trim().length > 0 && email.trim().length > 0 && password.length >= 6)
+    step === 0 ? (name.trim().length > 0 && emailValid && passwordValid)
     : step === 1 ? selectedSkills.length > 0
     : step === 2 ? selectedCauses.length > 0
     : selectedFrequency !== null
@@ -347,16 +352,24 @@ export default function SignupPage() {
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="signup-email" className="text-sm font-medium text-espresso/70">Email</Label>
-                      <Input id="signup-email" type="email" placeholder="maya@example.com" value={email} onChange={e => setEmail(e.target.value)} className="rounded-xl border-border/60 bg-background h-11" />
+                      <Input id="signup-email" type="email" placeholder="maya@example.com" value={email}
+                        onChange={e => { setEmail(e.target.value); setEmailError("") }}
+                        onBlur={() => setEmailError(email && !emailValid ? "Enter a valid email address" : "")}
+                        className={cn("rounded-xl border-border/60 bg-background h-11", emailError && "border-destructive")} />
+                      {emailError && <p className="text-xs text-destructive mt-0.5">{emailError}</p>}
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="signup-password" className="text-sm font-medium text-espresso/70">Password</Label>
                       <div className="relative">
-                        <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="At least 6 characters" value={password} onChange={e => setPassword(e.target.value)} className="rounded-xl border-border/60 bg-background h-11 pr-10" />
+                        <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="At least 8 characters" value={password}
+                          onChange={e => { setPassword(e.target.value); setPasswordError("") }}
+                          onBlur={() => setPasswordError(password && !passwordValid ? "Password must be at least 8 characters" : "")}
+                          className={cn("rounded-xl border-border/60 bg-background h-11 pr-10", passwordError && "border-destructive")} />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/40 hover:text-espresso/60" aria-label={showPassword ? "Hide password" : "Show password"}>
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
+                      {passwordError && <p className="text-xs text-destructive mt-0.5">{passwordError}</p>}
                     </div>
                   </div>
                 </motion.div>

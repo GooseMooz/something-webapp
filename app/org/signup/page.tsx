@@ -37,6 +37,8 @@ export default function OrgSignupPage() {
   const [orgName, setOrgName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
   const [description, setDescription] = useState("")
   const [phone, setPhone] = useState("")
   const [website, setWebsite] = useState("")
@@ -118,8 +120,11 @@ export default function OrgSignupPage() {
     if (step > 0 && step < 3) setStep(step - 1)
   }
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())
+  const passwordValid = password.length >= 8
+
   const canProceed =
-    step === 0 ? (orgName.trim().length > 0 && email.trim().length > 0 && password.length >= 6)
+    step === 0 ? (orgName.trim().length > 0 && emailValid && passwordValid)
     : step === 1 ? selectedType !== null
     : true
 
@@ -220,16 +225,24 @@ export default function OrgSignupPage() {
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="org-email" className="text-espresso/70">Email</Label>
-                      <Input id="org-email" type="email" placeholder="contact@yourorg.org" value={email} onChange={e => setEmail(e.target.value)} className="rounded-xl border-border bg-background h-11" />
+                      <Input id="org-email" type="email" placeholder="contact@yourorg.org" value={email}
+                        onChange={e => { setEmail(e.target.value); setEmailError("") }}
+                        onBlur={() => setEmailError(email && !emailValid ? "Enter a valid email address" : "")}
+                        className={cn("rounded-xl border-border bg-background h-11", emailError && "border-destructive")} />
+                      {emailError && <p className="text-xs text-destructive mt-0.5">{emailError}</p>}
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="org-password" className="text-espresso/70">Password</Label>
                       <div className="relative">
-                        <Input id="org-password" type={showPassword ? "text" : "password"} placeholder="At least 6 characters" value={password} onChange={e => setPassword(e.target.value)} className="rounded-xl border-border bg-background h-11 pr-10" />
+                        <Input id="org-password" type={showPassword ? "text" : "password"} placeholder="At least 8 characters" value={password}
+                          onChange={e => { setPassword(e.target.value); setPasswordError("") }}
+                          onBlur={() => setPasswordError(password && !passwordValid ? "Password must be at least 8 characters" : "")}
+                          className={cn("rounded-xl border-border bg-background h-11 pr-10", passwordError && "border-destructive")} />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/40 hover:text-espresso/60" aria-label={showPassword ? "Hide password" : "Show password"}>
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
+                      {passwordError && <p className="text-xs text-destructive mt-0.5">{passwordError}</p>}
                     </div>
                   </div>
                 </motion.div>
