@@ -23,7 +23,10 @@ jobs:
             git pull origin main
 
             echo "Building Docker image..."
-            docker build -t something-webapp .
+            docker build \
+              --build-arg NEXT_PUBLIC_SITE_URL=https://somethingmatters.ca \
+              --build-arg NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ secrets.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }} \
+              -t something-webapp .
 
             echo "Restarting container..."
             docker stop something-webapp 2>/dev/null || true
