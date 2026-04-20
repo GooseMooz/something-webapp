@@ -3,6 +3,8 @@ import { Lora, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://somethingmatters.ca'
+
 const lora = Lora({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -19,9 +21,66 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Something | Do Something That Matters',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Something — Volunteer in Vancouver',
+    template: '%s | Something',
+  },
   description:
-    'Find meaningful volunteer opportunities in Metro Vancouver. One-tap apply, earn XP, and make a real impact in your community.',
+    'Find meaningful volunteer opportunities in Metro Vancouver. One-tap apply, track your impact, and do something that matters.',
+  keywords: [
+    'Vancouver volunteering',
+    'volunteer Vancouver',
+    'Something Vancouver',
+    'Something Vancouver volunteering',
+    'Metro Vancouver volunteer opportunities',
+    'volunteer opportunities Vancouver BC',
+    'youth volunteering Vancouver',
+    'community volunteering Metro Vancouver',
+    'volunteer app Vancouver',
+  ],
+  authors: [{ name: 'Something', url: siteUrl }],
+  creator: 'Something',
+  publisher: 'Something',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_CA',
+    url: siteUrl,
+    siteName: 'Something',
+    title: 'Something — Volunteer in Vancouver',
+    description:
+      'Find meaningful volunteer opportunities in Metro Vancouver. One-tap apply, track your impact, and do something that matters.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Something — Volunteer in Metro Vancouver',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Something — Volunteer in Vancouver',
+    description:
+      'Find meaningful volunteer opportunities in Metro Vancouver. One-tap apply, track your impact, and do something that matters.',
+    images: ['/og-image.png'],
+    creator: '@somethingmatters',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
       {
@@ -39,6 +98,9 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
 }
 
 export const viewport: Viewport = {
@@ -49,6 +111,44 @@ export const viewport: Viewport = {
   userScalable: true,
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      url: siteUrl,
+      name: 'Something',
+      description: 'Volunteer opportunities in Metro Vancouver',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${siteUrl}/app/opportunities?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': `${siteUrl}/#organization`,
+      name: 'Something',
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/icon.svg`,
+      },
+      sameAs: [],
+      areaServed: {
+        '@type': 'Place',
+        name: 'Metro Vancouver, British Columbia, Canada',
+      },
+      description:
+        'Something connects Metro Vancouver youth with meaningful volunteer opportunities.',
+    },
+  ],
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,6 +157,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lora.variable} ${dmSans.variable} font-sans antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

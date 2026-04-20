@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { CopyEmailsButton } from './copy-emails-button'
+import { LaunchEmailButton } from './launch-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,7 +48,12 @@ export default function WaitlistAdminPage() {
                 {entries.length} {entries.length === 1 ? 'person' : 'people'} signed up
               </p>
             </div>
-            {entries.length > 0 && <CopyEmailsButton emails={sorted.map(e => e.email)} />}
+            {entries.length > 0 && (
+              <div className="flex items-center gap-2">
+                <CopyEmailsButton emails={sorted.map(e => e.email)} />
+                <LaunchEmailButton count={entries.length} />
+              </div>
+            )}
           </div>
         </div>
 
