@@ -345,6 +345,12 @@ export const adminApi = {
     return request<ApiOpportunity[]>(`/admin/opportunities${qs}`, {}, token)
   },
 
+  createOpportunity: (data: CreateOpportunityData & { org_id: string }, token: string) =>
+    request<ApiOpportunity>("/admin/opportunities", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
+
   updateOpportunity: (id: string, data: Partial<CreateOpportunityData>, token: string) =>
     request<ApiOpportunity>(`/admin/opportunities/${id}`, {
       method: "PUT",
