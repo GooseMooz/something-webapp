@@ -105,8 +105,10 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
   const category = normalizeCategory(opportunity.category)
   const colors = categoryColorMap[category] ?? categoryColorMap.Community
   const maxSpots = Number(opportunity.max_spots) || 0
-  const spotsTaken = Number(opportunity.spots_taken) || 0
-  const spotsLeft = maxSpots - spotsTaken
+  const spotsLeft = opportunity.spots_left !== undefined
+    ? Number(opportunity.spots_left)
+    : Math.max(0, maxSpots - (Number(opportunity.spots_taken) || 0))
+  const spotsTaken = maxSpots - spotsLeft
   const spotsPercent = maxSpots > 0 ? (spotsTaken / maxSpots) * 100 : 0
   const isAlmostFull = spotsLeft <= 5
   const xp = difficultyXp(opportunity.difficulty)
