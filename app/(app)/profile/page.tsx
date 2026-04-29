@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Award, Clock, CheckCircle2, Flame, Edit3,
-  Share2, Heart, Sparkles, X, Upload, FileText, Save, Lock, Eye, EyeOff,
+  Share2, Heart, Sparkles, X, Upload, FileText, Save, Lock, Eye, EyeOff, Bell,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,10 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
+import { Switch } from "@/components/ui/switch"
 import { XpRing } from "@/components/xp-ring"
 import { FadeIn, StaggerChildren, StaggerItem, ScaleOnTap } from "@/components/motion-wrapper"
 import { streakData } from "@/lib/mock-data"
-import { usersApi, normalizeCause } from "@/lib/api"
+import { usersApi, normalizeCause, type UserNotificationSettings } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -515,6 +516,11 @@ export default function ProfilePage() {
         </Card>
       </FadeIn>
 
+      {/* Email Notifications */}
+      <FadeIn>
+        <NotificationSettingsCard />
+      </FadeIn>
+
       {/* Edit Profile Modal */}
       <AnimatePresence>
         {editOpen && (
@@ -583,5 +589,86 @@ export default function ProfilePage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+const DEFAULT_USER_NOTIFICATIONS: UserNotificationSettings = {
+  application_accepted: true,
+  opportunity_reminder: true,
+  application_declined: true,
+  opportunity_canceled: true,
+}
+
+function NotificationSettingsCard() {
+  const { userId, token } = useAuth()
+  const [settings, setSettings] = useState<UserNotificationSettings>(DEFAULT_USER_NOTIFICATIONS)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!userId || !token) return
+    const cleanId = userId.includes(":") ? userId.split(":").slice(1).join(":") : userId
+    usersApi.getNotificationSettings(cleanId, token)
+      .then(setSettings)
+      .catch(() => {/* use defaults */})
+      .finally(() => setLoading(false))
+  }, [userId, token])
+
+  async function handleToggle(key: keyof UserNotificationSettings) {
+    if (!userId || !token || saving) return
+    const next = { ...settings, [key]: !settings[key] }
+    setSettings(next)
+    setSaving(true)
+    try {
+      const cleanId = userId.includes(":") ? userId.split(":").slice(1).join(":") : userId
+      const saved = await usersApi.updateNotificationSettings(cleanId, next, token)
+      setSettings(saved)
+    } catch {
+      setSettings(settings)
+      toast.error("Could not save notification settings")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const items: { key: keyof UserNotificationSettings; label: string; desc: string }[] = [
+    { key: "application_accepted", label: "Application accepted",  desc: "Email when an org accepts your application" },
+    { key: "application_declined", label: "Application declined",  desc: "Email when an org declines your application" },
+    { key: "opportunity_reminder", label: "Opportunity reminder",  desc: "Reminder email 24 hours before an accepted opportunity" },
+    { key: "opportunity_canceled", label: "Opportunity canceled",  desc: "Email if an opportunity you signed up for is canceled" },
+  ]
+
+  const cardClass = "border-border/60 bg-card shadow-sm shadow-espresso/[0.03]"
+
+  return (
+    <Card className={cn(cardClass, "mt-4")}>
+      <CardContent className="p-5">
+        <h3 className="text-sm font-bold text-espresso mb-4 flex items-center gap-1.5">
+          <Bell className="h-4 w-4 text-espresso/40" />Email Notifications
+        </h3>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-10 rounded-xl bg-muted animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-0 divide-y divide-border/40">
+            {items.map(({ key, label, desc }) => (
+              <div key={key} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                <div>
+                  <p className="text-sm font-medium text-espresso">{label}</p>
+                  <p className="text-xs text-espresso/40 mt-0.5">{desc}</p>
+                </div>
+                <Switch
+                  checked={settings[key]}
+                  onCheckedChange={() => handleToggle(key)}
+                  disabled={saving}
+                  className="shrink-0"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

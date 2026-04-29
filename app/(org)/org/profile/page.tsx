@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Globe, Mail, Phone, MapPin, Users, CheckCircle2, Edit3, ExternalLink, Sparkles, Upload, X, Save, Lock, Eye, EyeOff } from "lucide-react"
+import { Globe, Mail, Phone, MapPin, Users, CheckCircle2, Edit3, ExternalLink, Sparkles, Upload, X, Save, Lock, Eye, EyeOff, Bell } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label"
 import { FadeIn, ScaleOnTap } from "@/components/motion-wrapper"
 import { ImageCropModal } from "@/components/image-crop-modal"
 import { AnimatePresence as CropPresence } from "framer-motion"
-import { orgsApi } from "@/lib/api"
+import { orgsApi, type OrgNotificationSettings } from "@/lib/api"
+import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -415,6 +416,11 @@ export default function OrgProfilePage() {
         </Card>
       </FadeIn>
 
+      {/* Email Notifications */}
+      <FadeIn>
+        <OrgNotificationSettingsCard />
+      </FadeIn>
+
       {/* Edit Modal */}
       <AnimatePresence>
         {editOpen && (
@@ -488,5 +494,125 @@ export default function OrgProfilePage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+const DEFAULT_ORG_NOTIFICATIONS: OrgNotificationSettings = {
+  applicant_digest: true,
+  applicant_digest_frequency: "daily",
+  accepted_withdrawal: true,
+}
+
+function OrgNotificationSettingsCard() {
+  const { userId, token } = useAuth()
+  const [settings, setSettings] = useState<OrgNotificationSettings>(DEFAULT_ORG_NOTIFICATIONS)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!userId || !token) return
+    const cleanId = userId.includes(":") ? userId.split(":").slice(1).join(":") : userId
+    orgsApi.getNotificationSettings(cleanId, token)
+      .then(setSettings)
+      .catch(() => {/* use defaults */})
+      .finally(() => setLoading(false))
+  }, [userId, token])
+
+  async function save(next: OrgNotificationSettings) {
+    if (!userId || !token || saving) return
+    setSaving(true)
+    try {
+      const cleanId = userId.includes(":") ? userId.split(":").slice(1).join(":") : userId
+      const saved = await orgsApi.updateNotificationSettings(cleanId, next, token)
+      setSettings(saved)
+    } catch {
+      setSettings(settings)
+      toast.error("Could not save notification settings")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleToggle(key: "applicant_digest" | "accepted_withdrawal") {
+    const next = { ...settings, [key]: !settings[key] }
+    setSettings(next)
+    save(next)
+  }
+
+  function handleFrequency(freq: "daily" | "weekly") {
+    const next = { ...settings, applicant_digest_frequency: freq }
+    setSettings(next)
+    save(next)
+  }
+
+  const cardClass = "border-border/60 bg-card shadow-sm shadow-espresso/[0.03]"
+
+  return (
+    <Card className={cn(cardClass, "mt-4")}>
+      <CardContent className="p-5">
+        <h3 className="text-sm font-bold text-espresso mb-4 flex items-center gap-1.5">
+          <Bell className="h-4 w-4 text-espresso/40" />Email Notifications
+        </h3>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <div key={i} className="h-10 rounded-xl bg-muted animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-0 divide-y divide-border/40">
+            {/* Applicant digest */}
+            <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
+              <div>
+                <p className="text-sm font-medium text-espresso">Applicant digest</p>
+                <p className="text-xs text-espresso/40 mt-0.5">Summary email of new applications</p>
+              </div>
+              <Switch
+                checked={settings.applicant_digest}
+                onCheckedChange={() => handleToggle("applicant_digest")}
+                disabled={saving}
+                className="shrink-0"
+              />
+            </div>
+
+            {/* Frequency — only shown when digest is on */}
+            {settings.applicant_digest && (
+              <div className="flex items-center justify-between gap-4 py-3">
+                <p className="text-sm text-espresso/70">Digest frequency</p>
+                <div className="flex rounded-lg bg-muted/60 p-0.5 border border-border/40 gap-0.5">
+                  {(["daily", "weekly"] as const).map((freq) => (
+                    <button
+                      key={freq}
+                      disabled={saving}
+                      onClick={() => handleFrequency(freq)}
+                      className={cn(
+                        "px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors",
+                        settings.applicant_digest_frequency === freq
+                          ? "bg-card shadow-sm text-espresso"
+                          : "text-espresso/50 hover:text-espresso/70"
+                      )}
+                    >
+                      {freq}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Accepted withdrawal */}
+            <div className="flex items-center justify-between gap-4 py-3 last:pb-0">
+              <div>
+                <p className="text-sm font-medium text-espresso">Accepted applicant withdrawal</p>
+                <p className="text-xs text-espresso/40 mt-0.5">Email when an accepted volunteer withdraws</p>
+              </div>
+              <Switch
+                checked={settings.accepted_withdrawal}
+                onCheckedChange={() => handleToggle("accepted_withdrawal")}
+                disabled={saving}
+                className="shrink-0"
+              />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

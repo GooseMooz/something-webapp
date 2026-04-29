@@ -12,6 +12,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FadeIn, StaggerChildren, StaggerItem, ScaleOnTap } from "@/components/motion-wrapper"
 import { opportunitiesApi, orgsApi, usersApi, normalizeCategory, formatDate, difficultyXp, type ApiOpportunity, type ApiApplication, type ApiUser } from "@/lib/api"
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -26,6 +30,7 @@ export default function OrgOpportunitiesPage() {
   const [applications, setApplications] = useState<ApiApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   // Create form state
   const [title, setTitle] = useState("")
@@ -107,6 +112,7 @@ export default function OrgOpportunitiesPage() {
   const handleDelete = useCallback(async (id: string) => {
     if (!token) return
     setDeleting(id)
+    setDeleteConfirmId(null)
     try {
       const cleanId = id.includes(":") ? id.split(":").slice(1).join(":") : id
       await opportunitiesApi.delete(cleanId, token)
@@ -207,7 +213,7 @@ export default function OrgOpportunitiesPage() {
                           <Edit3 className="mr-1.5 h-3 w-3" /> Edit
                         </Button>
                       </ScaleOnTap>
-                      <Button size="sm" variant="outline" onClick={() => handleDelete(selectedOpportunity.id)}
+                      <Button size="sm" variant="outline" onClick={() => setDeleteConfirmId(selectedOpportunity.id)}
                         disabled={deleting === selectedOpportunity.id}
                         className="rounded-full border-destructive/30 text-destructive hover:bg-destructive/5 text-xs font-semibold h-8">
                         {deleting === selectedOpportunity.id ? (
@@ -548,7 +554,7 @@ export default function OrgOpportunitiesPage() {
                       <div className="flex items-start justify-between">
                         <h3 className="text-sm font-bold text-espresso leading-snug flex-1 mr-2">{op.title}</h3>
                         <button
-                          onClick={() => handleDelete(op.id)}
+                          onClick={() => setDeleteConfirmId(op.id)}
                           disabled={deleting === op.id}
                           className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full text-espresso/20 hover:text-destructive hover:bg-destructive/5 transition-colors"
                           aria-label="Delete opportunity"
@@ -594,6 +600,26 @@ export default function OrgOpportunitiesPage() {
           })}
         </StaggerChildren>
       )}
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this opportunity?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deleting this opportunity will cancel it. Accepted applicants may receive a cancellation email depending on their notification settings. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

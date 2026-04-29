@@ -18,6 +18,18 @@ export interface ApiUser {
   linkedin?: string
   s3_pfp?: string
   s3_pdf?: string
+  xp?: number
+  badges?: string[]
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ApiAdmin {
+  id: string
+  email: string
+  name: string
+  created_at: string
+  updated_at: string
 }
 
 export interface ApiOrg {
@@ -33,6 +45,9 @@ export interface ApiOrg {
   instagram?: string
   linkedin?: string
   s3_pfp?: string
+  verified?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ApiOpportunity {
@@ -47,12 +62,15 @@ export interface ApiOpportunity {
   location: string
   max_spots: number
   spots_taken: number
+  spots_left?: number
   recurring?: string
   drop_in?: boolean
   event_link?: string
   resources_link?: string
   tags?: string[]
   org?: ApiOrg
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ApiApplication {
@@ -61,6 +79,8 @@ export interface ApiApplication {
   opportunity_id: string
   status: "pending" | "accepted" | "rejected"
   created_at: string
+  updated_at?: string
+  xp_awarded?: boolean
   opportunity?: ApiOpportunity
   user?: ApiUser
 }
@@ -143,6 +163,12 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
+  adminLogin: (data: { email: string; password: string }) =>
+    request<{ token: string; access_token?: string; admin: ApiAdmin }>("/auth/admin/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   // Uses the HttpOnly refresh-token cookie — no Authorization header needed.
   // Returns both token and access_token (the latter for backward compat).
   refresh: () =>
@@ -169,6 +195,15 @@ export const usersApi = {
 
   uploadResume: (id: string, file: File, token: string) =>
     upload<ApiUser>(`/users/${id}/resume`, file, "file", token),
+
+  getNotificationSettings: (id: string, token: string) =>
+    request<UserNotificationSettings>(`/users/${id}/notification-settings`, {}, token),
+
+  updateNotificationSettings: (id: string, settings: UserNotificationSettings, token: string) =>
+    request<UserNotificationSettings>(`/users/${id}/notification-settings`, {
+      method: "PUT",
+      body: JSON.stringify(settings),
+    }, token),
 }
 
 // ── Orgs ───────────────────────────────────────────────────
@@ -193,6 +228,15 @@ export const orgsApi = {
 
   uploadPfp: (id: string, file: File, token: string) =>
     upload<ApiOrg>(`/orgs/${id}/pfp`, file, "file", token),
+
+  getNotificationSettings: (id: string, token: string) =>
+    request<OrgNotificationSettings>(`/orgs/${id}/notification-settings`, {}, token),
+
+  updateNotificationSettings: (id: string, settings: OrgNotificationSettings, token: string) =>
+    request<OrgNotificationSettings>(`/orgs/${id}/notification-settings`, {
+      method: "PUT",
+      body: JSON.stringify(settings),
+    }, token),
 }
 
 // ── Opportunities ──────────────────────────────────────────
@@ -253,6 +297,91 @@ export const applicationsApi = {
 
   delete: (id: string, token: string) =>
     request<void>(`/applications/${id}`, { method: "DELETE" }, token),
+}
+
+// ── Notification Settings ─────────────────────────────────
+
+export interface UserNotificationSettings {
+  application_accepted: boolean
+  opportunity_reminder: boolean
+  application_declined: boolean
+  opportunity_canceled: boolean
+}
+
+export interface OrgNotificationSettings {
+  applicant_digest: boolean
+  applicant_digest_frequency: "daily" | "weekly"
+  accepted_withdrawal: boolean
+}
+
+// ── Admin ──────────────────────────────────────────────────
+
+export const adminApi = {
+  getUsers: (token: string, params?: { search?: string }) => {
+    const qs = params?.search ? `?search=${encodeURIComponent(params.search)}` : ""
+    return request<ApiUser[]>(`/admin/users${qs}`, {}, token)
+  },
+
+  getOrgs: (token: string, params?: { search?: string; verified?: boolean }) => {
+    const p = new URLSearchParams()
+    if (params?.search) p.set("search", params.search)
+    if (params?.verified !== undefined) p.set("verified", String(params.verified))
+    const qs = p.toString() ? `?${p.toString()}` : ""
+    return request<ApiOrg[]>(`/admin/orgs${qs}`, {}, token)
+  },
+
+  verifyOrg: (id: string, verified: boolean, token: string) =>
+    request<ApiOrg>(`/admin/orgs/${id}/verification`, {
+      method: "PUT",
+      body: JSON.stringify({ verified }),
+    }, token),
+
+  getOpportunities: (token: string, params?: { search?: string; category?: string; org_id?: string }) => {
+    const p = new URLSearchParams()
+    if (params?.search) p.set("search", params.search)
+    if (params?.category) p.set("category", params.category)
+    if (params?.org_id) p.set("org_id", params.org_id)
+    const qs = p.toString() ? `?${p.toString()}` : ""
+    return request<ApiOpportunity[]>(`/admin/opportunities${qs}`, {}, token)
+  },
+
+  updateOpportunity: (id: string, data: Partial<CreateOpportunityData>, token: string) =>
+    request<ApiOpportunity>(`/admin/opportunities/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }, token),
+
+  getOpportunityApplications: (opportunityId: string, token: string) =>
+    request<{ opportunity: Partial<ApiOpportunity>; applications: ApiApplication[] }>(
+      `/admin/opportunities/${opportunityId}/applications`, {}, token
+    ),
+
+  getApplications: (token: string, params?: {
+    status?: string
+    user_id?: string
+    opportunity_id?: string
+    org_id?: string
+  }) => {
+    const p = new URLSearchParams()
+    if (params?.status) p.set("status", params.status)
+    if (params?.user_id) p.set("user_id", params.user_id)
+    if (params?.opportunity_id) p.set("opportunity_id", params.opportunity_id)
+    if (params?.org_id) p.set("org_id", params.org_id)
+    const qs = p.toString() ? `?${p.toString()}` : ""
+    return request<ApiApplication[]>(`/admin/applications${qs}`, {}, token)
+  },
+
+  updateApplication: (id: string, status: "accepted" | "rejected", token: string) =>
+    request<ApiApplication>(`/admin/applications/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }, token),
+
+  sendCampaign: (data: { audience: "users" | "orgs" | "all"; subject: string; body: string }, token: string) =>
+    request<{ sent: number; skipped: number; invalid_emails: string[] }>("/admin/campaigns", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
 }
 
 // ── Helpers ────────────────────────────────────────────────
