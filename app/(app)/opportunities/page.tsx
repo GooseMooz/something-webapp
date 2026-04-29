@@ -71,9 +71,12 @@ export default function OpportunitiesPage() {
           orgMap[cleanId] = o
           orgMap[o.id] = o
         })
-        const enriched = ops.map(op =>
-          op.org ? op : { ...op, org: orgMap[op.org_id] ?? orgMap[op.org_id.includes(":") ? op.org_id.split(":").slice(1).join(":") : op.org_id] }
-        )
+        const now = Date.now()
+        const enriched = ops
+          .filter(op => new Date(op.date).getTime() > now)
+          .map(op =>
+            op.org ? op : { ...op, org: orgMap[op.org_id] ?? orgMap[op.org_id.includes(":") ? op.org_id.split(":").slice(1).join(":") : op.org_id] }
+          )
         setOpportunities(enriched)
       })
       .catch(() => {/* silent fail */})

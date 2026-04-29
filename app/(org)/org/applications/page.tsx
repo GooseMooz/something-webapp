@@ -74,11 +74,23 @@ export default function OrgApplicationsPage() {
     try {
       const cleanId = id.includes(":") ? id.split(":").slice(1).join(":") : id
       const updated = await applicationsApi.update(cleanId, status, token)
-      // Backend response doesn't include nested user/opportunity — preserve them from local state
-      setApplications(prev => prev.map(a => a.id === id ? { ...updated, id, user: a.user, opportunity: a.opportunity } : a))
+      setApplications(prev => prev.map(a => {
+        if (a.id !== id) return a
+        return {
+          ...updated,
+          id,
+          user: updated.user ?? a.user,
+          opportunity: updated.opportunity ?? a.opportunity,
+        }
+      }))
       toast.success(status === "accepted" ? "Application accepted!" : "Application rejected")
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update application")
+      const msg = err instanceof Error ? err.message : ""
+      if (/409|no spots|conflict/i.test(msg)) {
+        toast.error("This opportunity has no spots left.")
+      } else {
+        toast.error("Could not update application")
+      }
     }
   }, [token])
 

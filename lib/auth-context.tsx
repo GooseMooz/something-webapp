@@ -8,9 +8,9 @@ import React, {
   useCallback,
   useRef,
 } from "react"
-import { usersApi, orgsApi, authApi, jwtId, decodeJwt, type ApiUser, type ApiOrg } from "./api"
+import { usersApi, orgsApi, authApi, jwtId, decodeJwt, type ApiUser, type ApiOrg, type ApiAdmin } from "./api"
 
-type AuthType = "user" | "org" | null
+type AuthType = "user" | "org" | "admin" | null
 
 interface AuthState {
   token: string | null
@@ -18,11 +18,13 @@ interface AuthState {
   userId: string | null
   user: ApiUser | null
   org: ApiOrg | null
+  admin: ApiAdmin | null
 }
 
 interface AuthContextValue extends AuthState {
   loginAsUser: (token: string) => Promise<void>
   loginAsOrg: (token: string) => Promise<void>
+  loginAsAdmin: (token: string, admin: ApiAdmin) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
   refreshOrg: () => Promise<void>
@@ -33,9 +35,11 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-const STORAGE_TOKEN    = "sth_auth_token"
-const STORAGE_TYPE     = "sth_auth_type"
-const STORAGE_ID       = "sth_auth_id"
+const STORAGE_TOKEN      = "sth_auth_token"
+const STORAGE_TYPE       = "sth_auth_type"
+const STORAGE_ID         = "sth_auth_id"
+const STORAGE_ADMIN_NAME  = "sth_admin_name"
+const STORAGE_ADMIN_EMAIL = "sth_admin_email"
 const pfpBustKey = (id: string) => `sth_pfp_bust_${id}`
 
 function withPfpBust(user: ApiUser, userId: string): ApiUser {
@@ -52,6 +56,8 @@ function clearStorage() {
   localStorage.removeItem(STORAGE_TOKEN)
   localStorage.removeItem(STORAGE_TYPE)
   localStorage.removeItem(STORAGE_ID)
+  localStorage.removeItem(STORAGE_ADMIN_NAME)
+  localStorage.removeItem(STORAGE_ADMIN_EMAIL)
 }
 
 /** How many milliseconds until this JWT expires (negative = already expired). */
@@ -68,7 +74,7 @@ function pickToken(data: { token: string; access_token?: string }): string {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
-    token: null, type: null, userId: null, user: null, org: null,
+    token: null, type: null, userId: null, user: null, org: null, admin: null,
   })
   const [isLoading, setIsLoading] = useState(true)
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -100,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {
           clearStorage()
           clearRefreshTimer()
-          setState({ token: null, type: null, userId: null, user: null, org: null })
+          setState({ token: null, type: null, userId: null, user: null, org: null, admin: null })
         }
       }, delay)
     },
@@ -136,14 +142,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedType === "user") {
           const user = await usersApi.get(storedUserId, token!)
           setState((s) => ({ ...s, user: withPfpBust(user, storedUserId) }))
-        } else {
+        } else if (storedType === "org") {
           const org = await orgsApi.get(storedUserId, token!)
           setState((s) => ({ ...s, org }))
+        } else if (storedType === "admin") {
+          const adminName = localStorage.getItem(STORAGE_ADMIN_NAME) || "Admin"
+          const adminEmail = localStorage.getItem(STORAGE_ADMIN_EMAIL) || ""
+          const admin: ApiAdmin = { id: storedUserId, email: adminEmail, name: adminName, created_at: "", updated_at: "" }
+          setState((s) => ({ ...s, admin }))
         }
         scheduleRefresh(token!, storedType, storedUserId)
       } catch {
         clearStorage()
-        setState({ token: null, type: null, userId: null, user: null, org: null })
+        setState({ token: null, type: null, userId: null, user: null, org: null, admin: null })
       }
     }
 
@@ -162,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_ID, id)
 
     const user = await usersApi.get(id, token)
-    setState({ token, type: "user", userId: id, user: withPfpBust(user, id), org: null })
+    setState({ token, type: "user", userId: id, user: withPfpBust(user, id), org: null, admin: null })
     scheduleRefresh(token, "user", id)
   }, [scheduleRefresh])
 
@@ -175,14 +186,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_ID, id)
 
     const org = await orgsApi.get(id, token)
-    setState({ token, type: "org", userId: id, user: null, org })
+    setState({ token, type: "org", userId: id, user: null, org, admin: null })
     scheduleRefresh(token, "org", id)
+  }, [scheduleRefresh])
+
+  const loginAsAdmin = useCallback(async (token: string, admin: ApiAdmin) => {
+    const id = admin.id.includes(":") ? admin.id.split(":").slice(1).join(":") : admin.id
+
+    localStorage.setItem(STORAGE_TOKEN, token)
+    localStorage.setItem(STORAGE_TYPE, "admin")
+    localStorage.setItem(STORAGE_ID, id)
+    localStorage.setItem(STORAGE_ADMIN_NAME, admin.name)
+    localStorage.setItem(STORAGE_ADMIN_EMAIL, admin.email)
+
+    setState({ token, type: "admin", userId: id, user: null, org: null, admin: { ...admin, id } })
+    scheduleRefresh(token, "admin", id)
   }, [scheduleRefresh])
 
   const logout = useCallback(() => {
     clearRefreshTimer()
     clearStorage()
-    setState({ token: null, type: null, userId: null, user: null, org: null })
+    setState({ token: null, type: null, userId: null, user: null, org: null, admin: null })
     // Revoke the refresh token on the backend (fire-and-forget).
     authApi.logout().catch(() => {})
   }, [])
@@ -222,6 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...state,
         loginAsUser,
         loginAsOrg,
+        loginAsAdmin,
         logout,
         refreshUser,
         refreshOrg,

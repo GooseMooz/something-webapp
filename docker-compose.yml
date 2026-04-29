@@ -1,0 +1,19 @@
+services:
+  webapp:
+    image: ghcr.io/GooseMooz/something-webapp:latest
+    restart: unless-stopped
+    environment: 
+      - BACKEND_URL=http://something-backend-api:3010
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.something-frontend.rule=Host(`somethingmatters.ca`) || Host(`www.somethingmatters.ca`)"
+      - "traefik.http.routers.something-frontend.entrypoints=websecure"
+      - "traefik.http.routers.something-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.something-frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.something-frontend.middlewares=www-redirect@file,secure-headers@file"
+
+networks:
+  traefik-public:
+    external: true

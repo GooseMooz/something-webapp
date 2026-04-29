@@ -280,8 +280,8 @@ function ApplicationCard({ application, onWithdraw, onSelect }: {
               <span className="text-espresso/15">Applied {formatDate(application.created_at)}</span>
             </div>
 
-            {/* Withdraw button (only for pending) */}
-            {application.status === "pending" && (
+            {/* Withdraw button (pending or accepted) */}
+            {(application.status === "pending" || application.status === "accepted") && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -410,7 +410,7 @@ function ApplicationDetail({ app, onWithdraw }: { app: ApiApplication; onWithdra
       </div>
 
       <DrawerFooter className="pt-3 flex flex-row gap-2">
-        {app.status === "pending" && (
+        {(app.status === "pending" || app.status === "accepted") && (
           <Button variant="ghost" onClick={handleWithdraw} disabled={withdrawing}
             className="flex-1 rounded-full text-sm font-semibold text-espresso/40 hover:text-destructive hover:bg-destructive/5 border border-border/50">
             {withdrawing ? (
