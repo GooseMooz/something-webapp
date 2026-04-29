@@ -28,6 +28,17 @@ jobs:
             NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ secrets.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
           tags: ghcr.io/goosemooz/something-webapp:latest
 
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/something-webapp
+            docker compose pull
+            docker compose up -d webapp
+
   check:
     runs-on: ubuntu-latest
     steps:
