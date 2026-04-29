@@ -1,6 +1,6 @@
 services:
   webapp:
-    image: ghcr.io/GooseMooz/something-webapp:latest
+    image: ghcr.io/goosemooz/something-webapp:latest
     restart: unless-stopped
     environment: 
       - BACKEND_URL=http://something-backend-api:3010
