@@ -51,7 +51,7 @@ export default function AdminUsersPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => load(search || undefined), 380)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [search]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search])
 
   return (
     <div className="px-4 py-6 md:px-8 md:py-8">

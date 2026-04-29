@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { adminApi, formatDate, type ApiOrg } from "@/lib/api"
+import { adminApi, type ApiOrg } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -63,7 +63,7 @@ export default function AdminOrgsPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => load(search || undefined, verifiedFilter), 380)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [search]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search])
 
   async function handleToggleVerify(org: ApiOrg) {
     if (!token) return
